@@ -4,8 +4,15 @@ export default defineNuxtConfig({
     modules: [
         '@nuxtjs/tailwindcss',
         '@pinia/nuxt',
-        '@vueuse/nuxt'
+        '@vueuse/nuxt',
+        '@nuxtjs/color-mode',
     ],
+    colorMode: {
+        classSuffix: '',
+        preference: 'system',
+        fallback: 'light',
+        storageKey: 'color-mode'
+    },
     css: ['~/assets/css/main.css'],
     runtimeConfig: {
         public: {
@@ -16,7 +23,11 @@ export default defineNuxtConfig({
     },
     app: {
         head: {
-            title: 'OAuth App',
+            title: 'zawosite',
+            link : [
+                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                //{ rel: 'icon', type: 'image/png', href: '/myicon.png' },
+            ],
             meta: [
                 { charset: 'utf-8' },
                 { name: 'viewport', content: 'width=device-width, initial-scale=1' }

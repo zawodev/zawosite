@@ -1,3 +1,9 @@
+### my commands
+- npx nuxi dev
+- npx nuxi dev --tunnel
+- npx nuxi dev --host
+- npm run dev (boring and worse)
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.

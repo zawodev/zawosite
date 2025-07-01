@@ -1,3 +1,4 @@
+export const darkMode = 'class';
 export const content = [
     "./components/**/*.{js,vue,ts}",
     "./layouts/**/*.vue",
