@@ -4,7 +4,9 @@ export interface User {
     id: number
     email: string
     full_name: string
+    username: string
     avatar_url?: string
+    bio?: string
     provider: string
     role: 'user' | 'admin'
     is_active: boolean
@@ -12,11 +14,16 @@ export interface User {
     updated_at?: string
 }
 
+export interface UserProfile extends User {
+    friends: User[]
+}
+
 export interface AuthState {
     user: User | null
     token: string | null
     isAuthenticated: boolean
     users: User[]
+    isGuest: boolean
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -24,64 +31,36 @@ export const useAuthStore = defineStore('auth', {
         user: null,
         token: null,
         isAuthenticated: false,
-        users: []
+        users: [],
+        isGuest: false
     }),
 
     getters: {
         isAdmin: (state) => state.user?.role === 'admin',
-        currentUser: (state) => state.user
+        currentUser: (state) => state.user,
+        displayName: (state) => {
+            if (state.user) return state.user.username
+            if (state.isGuest) return 'Gość'
+            return null
+        }
     },
 
     actions: {
-        async loginWithGoogle(credential: string) {
-            try {
-                const config = useRuntimeConfig()
-                const response = await $fetch<{ access_token: string; user: User }>(`${config.public.apiBase}/auth/google`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ access_token: credential })
-                })
-
-                this.setAuth(response.access_token, response.user)
-                await navigateTo('/dashboard')
-                return response
-            } catch (error) {
-                console.error('Google login error:', error)
-                throw error
-            }
-        },
-
-        async loginWithFacebook(accessToken: string) {
-            try {
-                const config = useRuntimeConfig()
-                const response = await $fetch<{ access_token: string; user: User }>(`${config.public.apiBase}/auth/facebook`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ access_token: accessToken })
-                })
-
-                this.setAuth(response.access_token, response.user)
-                await navigateTo('/dashboard')
-                return response
-            } catch (error) {
-                console.error('Facebook login error:', error)
-                throw error
-            }
+        continueAsGuest() {
+            this.isGuest = true
         },
 
         setAuth(token: string, user: User) {
             this.token = token
             this.user = user
             this.isAuthenticated = true
+            this.isGuest = false
 
             // Store in localStorage
             if (import.meta.client) {
                 localStorage.setItem('auth_token', token)
                 localStorage.setItem('auth_user', JSON.stringify(user))
+                localStorage.removeItem('is_guest')
             }
         },
 
@@ -89,11 +68,13 @@ export const useAuthStore = defineStore('auth', {
             this.token = null
             this.user = null
             this.isAuthenticated = false
+            this.isGuest = false
             this.users = []
 
             if (import.meta.client) {
                 localStorage.removeItem('auth_token')
                 localStorage.removeItem('auth_user')
+                localStorage.removeItem('is_guest')
             }
 
             await navigateTo('/login')
@@ -103,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
             if (import.meta.client) {
                 const token = localStorage.getItem('auth_token')
                 const userStr = localStorage.getItem('auth_user')
+                const isGuest = localStorage.getItem('is_guest')
 
                 if (token && userStr) {
                     try {
@@ -112,6 +94,8 @@ export const useAuthStore = defineStore('auth', {
                         console.error('Error loading auth from storage:', error)
                         await this.logout()
                     }
+                } else if (isGuest === 'true') {
+                    this.isGuest = true
                 }
             }
         },
@@ -119,15 +103,63 @@ export const useAuthStore = defineStore('auth', {
         async fetchUsers() {
             try {
                 const config = useRuntimeConfig()
-                const users = await $fetch<User[]>(`${config.public.apiBase}/users`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
-                })
+                const headers: Record<string, string> = {}
+
+                if (this.token) {
+                    headers['Authorization'] = `Bearer ${this.token}`
+                }
+
+                const users = await $fetch<User[]>(`${config.public.apiBase}/users`, { headers })
                 this.users = users
                 return users
             } catch (error) {
                 console.error('Error fetching users:', error)
+                throw error
+            }
+        },
+
+        async fetchUserProfile(username: string): Promise<UserProfile> {
+            try {
+                const config = useRuntimeConfig()
+                const headers: Record<string, string> = {}
+
+                if (this.token) {
+                    headers['Authorization'] = `Bearer ${this.token}`
+                }
+
+                return await $fetch<UserProfile>(`${config.public.apiBase}/users/${username}`, { headers })
+            } catch (error) {
+                console.error('Error fetching user profile:', error)
+                throw error
+            }
+        },
+
+        async addFriend(username: string) {
+            try {
+                const config = useRuntimeConfig()
+                await $fetch(`${config.public.apiBase}/users/${username}/friend`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                })
+            } catch (error) {
+                console.error('Error adding friend:', error)
+                throw error
+            }
+        },
+
+        async removeFriend(username: string) {
+            try {
+                const config = useRuntimeConfig()
+                await $fetch(`${config.public.apiBase}/users/${username}/friend`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                })
+            } catch (error) {
+                console.error('Error removing friend:', error)
                 throw error
             }
         },
