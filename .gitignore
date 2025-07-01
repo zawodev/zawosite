@@ -1,0 +1,48 @@
+# general
+.DS_Store
+.env
+.env.*
+.venv/
+__pycache__/
+
+# backend - FastAPI python
+*.pyc
+*.pyd
+*.pyo
+pip-log.txt
+.Python
+build/
+dist/
+venv/
+env/
+htmlcov/
+.pytest_cache/
+.coverage
+/backend/__pycache__/
+
+# frontend - Nuxt.js / Vue.js
+/frontend/.nuxt/      # Nuxt.js build output (dev server)
+/frontend/.output/    # Nuxt.js build output (production)
+/frontend/dist/       # Sometimes generated, good to ignore
+/frontend/coverage/   # Test coverage reports
+
+# common - Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pnpm-lock.yaml
+
+# Docker
+docker-compose.override.yml
+docker-compose.yml.backup
+*.log
+!*.gitignore # Ensure .gitignore itself is not ignored
+
+# ide specific
+.vscode/
+.idea/
+
+# os files
+.Trash-*

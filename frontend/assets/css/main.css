@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen;
+    }
+}
+
+@layer components {
+    .glass-effect {
+        @apply bg-white/20 backdrop-blur-lg border border-white/30 shadow-xl;
+    }
+
+    .btn-primary {
+        @apply bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200;
+    }
+
+    .card {
+        @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100;
+    }
+}

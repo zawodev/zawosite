@@ -1,0 +1,43 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000" # Frontend (przeglądarka) może się łączyć z backendem na localhost:8000
+    environment:
+      # Dla SQLite, DATABASE_URL wskazuje na plik wewnątrz kontenera.
+      # Plik `db.sqlite3` zostanie utworzony w katalogu `/app` wewnątrz kontenera.
+      # WAŻNE: Domyślnie, jeśli kontener zostanie usunięty, dane zostaną utracone!
+      # Aby dane były trwałe, można by dodać `volumes: - ./backend_data:/app`
+      # Ale dla najprostszego testu, zostawiamy tak.
+      DATABASE_URL: sqlite:///./db.sqlite3
+    restart: on-failure
+    volumes:
+      # Mapowanie woluminu do debugowania. Zmiany w kodzie backendu będą widoczne w kontenerze.
+      - ./backend:/app
+      - /app/venv # Ignoruj katalog venv, żeby nie nadpisywać lokalnego venv
+      - /app/node_modules # Ignoruj, jeśli przypadkowo się pojawią
+    # Jeśli chcesz zachować dane SQLite po zniszczeniu kontenera, dodaj to:
+    # volumes:
+    #   - ./backend/sqlite_data:/app/db.sqlite3 # Mapuje plik db.sqlite3 z kontenera na hosta
+    #   - ./backend:/app # Nadal mapuj kod
+    #   - /app/venv
+    #   - /app/node_modules
+
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000" # Przeglądarka łączy się z Nuxt.js na localhost:3000
+    environment:
+      # Ta zmienna środowiskowa nie jest używana przez PROXY w trybie deweloperskim,
+      # ale może być przydatna w przyszłości przy deploymencie.
+      NUXT_PUBLIC_API_BASE: http://backend:8000 # Nuxt.js (wewnątrz Dockera) będzie szukał 'backend' na 8000
+    depends_on:
+      - backend # Upewnij się, że backend jest uruchomiony, zanim frontend wystartuje
+    restart: on-failure
+    volumes:
+      # Mapowanie woluminu do debugowania. Zmiany w kodzie frontendowym będą widoczne w kontenerze.
+      - ./frontend:/app
+      - /app/node_modules # Ważne: to zapobiega nadpisywaniu node_modules z kontenera
+      - /app/.nuxt # Ignoruj, jeśli przypadkowo się pojawią
+      - /app/.output # Ignoruj

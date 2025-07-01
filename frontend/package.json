@@ -1,0 +1,29 @@
+{
+  "name": "zawosite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "nuxt": "^3.17.5",
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1",
+    "@pinia/nuxt": "^0.5.1",
+    "@vueuse/core": "^10.5.0",
+    "@vueuse/nuxt": "^10.5.0",
+    "pinia": "^2.1.7",
+    "@nuxtjs/tailwindcss": "^6.8.4",
+    "@headlessui/vue": "^1.7.16",
+    "@heroicons/vue": "^2.0.18",
+    "vue-toastification": "^2.0.0-rc.5",
+    "vue3-google-login": "^2.0.21"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "~2.5.0"
+  }
+}
