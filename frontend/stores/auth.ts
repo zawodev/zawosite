@@ -6,178 +6,157 @@ export interface User {
     full_name: string
     username: string
     avatar_url?: string
-    bio?: string
     provider: string
     role: 'user' | 'admin'
-    is_active: boolean
-    created_at: string
-    updated_at?: string
+    bio?: string
+    friends: User[]
 }
 
 export interface UserProfile extends User {
     friends: User[]
 }
 
-export interface AuthState {
-    user: User | null
-    token: string | null
-    isAuthenticated: boolean
-    users: User[]
-    isGuest: boolean
-}
-
 export const useAuthStore = defineStore('auth', {
-    state: (): AuthState => ({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        users: [],
+    state: () => ({
+        token: null as string | null,
+        user: null as User | null,
         isGuest: false
     }),
 
     getters: {
-        isAdmin: (state) => state.user?.role === 'admin',
-        currentUser: (state) => state.user,
+        isAuthenticated: (state) => !!state.token && !!state.user,
         displayName: (state) => {
-            if (state.user) return state.user.username
+            if (state.user) return state.user.full_name
             if (state.isGuest) return 'Gość'
-            return null
+            return 'Niezalogowany'
         }
     },
 
     actions: {
-        continueAsGuest() {
-            this.isGuest = true
-        },
-
         setAuth(token: string, user: User) {
             this.token = token
             this.user = user
-            this.isAuthenticated = true
             this.isGuest = false
-
-            // Store in localStorage
-            if (import.meta.client) {
-                localStorage.setItem('auth_token', token)
-                localStorage.setItem('auth_user', JSON.stringify(user))
-                localStorage.removeItem('is_guest')
-            }
+            this.saveToStorage()
         },
 
-        async logout() {
+        setGuestMode() {
             this.token = null
             this.user = null
-            this.isAuthenticated = false
-            this.isGuest = false
-            this.users = []
-
-            if (import.meta.client) {
-                localStorage.removeItem('auth_token')
-                localStorage.removeItem('auth_user')
-                localStorage.removeItem('is_guest')
-            }
-
-            await navigateTo('/login')
+            this.isGuest = true
+            this.saveToStorage()
         },
 
-        async loadFromStorage() {
-            if (import.meta.client) {
+        logout() {
+            this.token = null
+            this.user = null
+            this.isGuest = false
+            this.clearStorage()
+            return navigateTo('/login')
+        },
+
+        saveToStorage() {
+            if (process.client) {
+                localStorage.setItem('auth_token', this.token || '')
+                localStorage.setItem('auth_user', JSON.stringify(this.user))
+                localStorage.setItem('auth_guest', JSON.stringify(this.isGuest))
+            }
+        },
+
+        loadFromStorage() {
+            if (process.client) {
                 const token = localStorage.getItem('auth_token')
                 const userStr = localStorage.getItem('auth_user')
-                const isGuest = localStorage.getItem('is_guest')
+                const guestStr = localStorage.getItem('auth_guest')
 
-                if (token && userStr) {
-                    try {
-                        const user = JSON.parse(userStr)
-                        this.setAuth(token, user)
-                    } catch (error) {
-                        console.error('Error loading auth from storage:', error)
-                        await this.logout()
-                    }
-                } else if (isGuest === 'true') {
+                if (token && userStr && userStr !== 'null') {
+                    this.token = token
+                    this.user = JSON.parse(userStr)
+                    this.isGuest = false
+                } else if (guestStr && JSON.parse(guestStr)) {
+                    this.token = null
+                    this.user = null
                     this.isGuest = true
                 }
             }
         },
 
-        async fetchUsers() {
-            try {
-                const config = useRuntimeConfig()
-                const headers: Record<string, string> = {}
-
-                if (this.token) {
-                    headers['Authorization'] = `Bearer ${this.token}`
-                }
-
-                const users = await $fetch<User[]>(`${config.public.apiBase}/users`, { headers })
-                this.users = users
-                return users
-            } catch (error) {
-                console.error('Error fetching users:', error)
-                throw error
+        clearStorage() {
+            if (process.client) {
+                localStorage.removeItem('auth_token')
+                localStorage.removeItem('auth_user')
+                localStorage.removeItem('auth_guest')
             }
+        },
+
+        async fetchUsers(): Promise<User[]> {
+            const config = useRuntimeConfig()
+
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            }
+
+            if (this.token) {
+                headers['Authorization'] = `Bearer ${this.token}`
+            }
+
+            const { data } = await $fetch<{ data: User[] }>('/users', {
+                baseURL: config.public.apiBase,
+                headers
+            })
+
+            return data
         },
 
         async fetchUserProfile(username: string): Promise<UserProfile> {
-            try {
-                const config = useRuntimeConfig()
-                const headers: Record<string, string> = {}
+            const config = useRuntimeConfig()
 
-                if (this.token) {
-                    headers['Authorization'] = `Bearer ${this.token}`
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            }
+
+            if (this.token) {
+                headers['Authorization'] = `Bearer ${this.token}`
+            }
+
+            return await $fetch<UserProfile>(`/users/${username}`, {
+                baseURL: config.public.apiBase,
+                headers
+            })
+        },
+
+        async addFriend(username: string): Promise<void> {
+            if (!this.isAuthenticated) {
+                throw new Error('Musisz być zalogowany, aby dodać znajomego')
+            }
+
+            const config = useRuntimeConfig()
+
+            await $fetch(`/users/${username}/friend`, {
+                method: 'POST',
+                baseURL: config.public.apiBase,
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
                 }
-
-                return await $fetch<UserProfile>(`${config.public.apiBase}/users/${username}`, { headers })
-            } catch (error) {
-                console.error('Error fetching user profile:', error)
-                throw error
-            }
+            })
         },
 
-        async addFriend(username: string) {
-            try {
-                const config = useRuntimeConfig()
-                await $fetch(`${config.public.apiBase}/users/${username}/friend`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
-                })
-            } catch (error) {
-                console.error('Error adding friend:', error)
-                throw error
+        async removeFriend(username: string): Promise<void> {
+            if (!this.isAuthenticated) {
+                throw new Error('Musisz być zalogowany, aby usunąć znajomego')
             }
-        },
 
-        async removeFriend(username: string) {
-            try {
-                const config = useRuntimeConfig()
-                await $fetch(`${config.public.apiBase}/users/${username}/friend`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
-                })
-            } catch (error) {
-                console.error('Error removing friend:', error)
-                throw error
-            }
-        },
+            const config = useRuntimeConfig()
 
-        async fetchMe() {
-            try {
-                const config = useRuntimeConfig()
-                const user = await $fetch<User>(`${config.public.apiBase}/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
-                })
-                this.user = user
-                return user
-            } catch (error) {
-                console.error('Error fetching current user:', error)
-                throw error
-            }
+            await $fetch(`/users/${username}/friend`, {
+                method: 'DELETE',
+                baseURL: config.public.apiBase,
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
         }
     }
 })
