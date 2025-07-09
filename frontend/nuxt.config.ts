@@ -1,19 +1,26 @@
 export default defineNuxtConfig({
     compatibilityDate: '2025-07-01',
     devtools: { enabled: true },
+    css: ['~/assets/css/main.css'],
     modules: [
         '@nuxtjs/tailwindcss',
+        '@nuxtjs/color-mode',
         '@pinia/nuxt',
         '@vueuse/nuxt',
-        '@nuxtjs/color-mode',
     ],
     colorMode: {
-        classSuffix: '',
-        preference: 'system',
-        fallback: 'light',
-        storageKey: 'color-mode'
+        preference: 'system', // default theme
+        dataValue: 'theme', // activate data-theme in <html> tag
+        classSuffix: '', // no suffix for CSS classes
+        classPrefix: '',
+        storageKey: 'nuxt-color-mode'
     },
-    css: ['~/assets/css/main.css'],
+    tailwindcss: {
+        cssPath: '~/assets/css/main.css',
+        configPath: 'tailwind.config.js',
+        exposeConfig: false,
+        viewer: true,
+    },
     runtimeConfig: {
         public: {
             apiBase: process.env.API_BASE_URL || 'http://localhost:8000',
@@ -25,7 +32,7 @@ export default defineNuxtConfig({
         head: {
             title: 'zawosite',
             link : [
-                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                //{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
                 //{ rel: 'icon', type: 'image/png', href: '/myicon.png' },
             ],
             meta: [

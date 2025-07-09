@@ -56,7 +56,7 @@ export const useAuthStore = defineStore('auth', {
         },
 
         saveToStorage() {
-            if (process.client) {
+            if (import.meta.client) {
                 localStorage.setItem('auth_token', this.token || '')
                 localStorage.setItem('auth_user', JSON.stringify(this.user))
                 localStorage.setItem('auth_guest', JSON.stringify(this.isGuest))
@@ -64,7 +64,7 @@ export const useAuthStore = defineStore('auth', {
         },
 
         loadFromStorage() {
-            if (process.client) {
+            if (import.meta.client) {
                 const token = localStorage.getItem('auth_token')
                 const userStr = localStorage.getItem('auth_user')
                 const guestStr = localStorage.getItem('auth_guest')
@@ -82,7 +82,7 @@ export const useAuthStore = defineStore('auth', {
         },
 
         clearStorage() {
-            if (process.client) {
+            if (import.meta.client) {
                 localStorage.removeItem('auth_token')
                 localStorage.removeItem('auth_user')
                 localStorage.removeItem('auth_guest')
