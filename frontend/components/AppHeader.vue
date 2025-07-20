@@ -11,24 +11,21 @@
 
         <!-- Navigation -->
         <nav class="hidden md:flex space-x-8">
-          <NuxtLink to="/dashboard" class="text-gray-700 hover:text-blue-600 transition-colors">
-            Dashboard
+          <NuxtLink to="/admin" class="text-gray-700 hover:text-blue-600 transition-colors">
+            Admin
           </NuxtLink>
-          <NuxtLink to="/users" class="text-gray-700 hover:text-blue-600 transition-colors">
-            Użytkownicy
-          </NuxtLink>
-          <NuxtLink v-if="authStore.user" :to="`/profile/${authStore.user.username}`" class="text-gray-700 hover:text-blue-600 transition-colors">
-            Mój Profil
+          <NuxtLink to="/games" class="text-gray-700 hover:text-blue-600 transition-colors">
+            Gry
           </NuxtLink>
         </nav>
 
         <!-- User Info & Actions -->
         <div class="flex items-center space-x-4">
           <!-- Theme Toggle -->
-          <ThemeToggle />
+          <!-- <ThemeToggle /> -->
           <!-- User Display -->
           <div v-if="authStore.isAuthenticated || authStore.isGuest" class="flex items-center space-x-3">
-            <div class="flex items-center space-x-2">
+            <NuxtLink :to="authStore.isGuest ? '/profile/guest' : `/profile/${authStore.user.username}`" class="flex items-center space-x-2 group">
               <img
                   v-if="authStore.user?.avatar_url"
                   :src="authStore.user.avatar_url"
@@ -42,7 +39,7 @@
                 {{ authStore.isGuest ? 'G' : authStore.user?.full_name?.charAt(0).toUpperCase() }}
               </div>
               <div class="hidden sm:block">
-                <p class="text-sm font-medium text-gray-900">
+                <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
                   {{ authStore.displayName }}
                 </p>
                 <p v-if="authStore.user" class="text-xs text-gray-500">
@@ -52,29 +49,29 @@
                   Gość
                 </p>
               </div>
-            </div>
-
+            </NuxtLink>
             <!-- Logout Button -->
             <button
                 @click="handleLogout"
                 class="text-gray-500 hover:text-red-600 transition-colors p-2 rounded-md hover:bg-gray-100"
                 title="Wyloguj się"
             >
-              <svg class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-              </svg>
+              <ArrowRightOnRectangleIcon class="w-5 h-5" />
             </button>
           </div>
-
           <!-- Login Button for non-authenticated users -->
           <div v-else>
-            <NuxtLink
-                to="/login"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            <button
+                @click="showLogin = true"
+                class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               Zaloguj się
-            </NuxtLink>
+            </button>
           </div>
+          <!-- Przycisk ustawień globalnych -->
+          <button @click="showSettings = true" class="text-gray-500 hover:text-blue-600 transition-colors p-2 rounded-md hover:bg-gray-100 flex items-center justify-center" title="Ustawienia">
+            <Cog6ToothIcon class="w-5 h-5" />
+          </button>
 
           <!-- Mobile menu button -->
           <button
@@ -118,15 +115,24 @@
       </div>
     </div>
   </header>
+  <SettingsPanel v-if="showSettings" @close="showSettings = false" />
+  <LoginPanel v-if="showLogin" @close="showLogin = false" />
 </template>
 
 <script setup lang="ts">
+import SettingsPanel from '~/components/SettingsPanel.vue'
+import LoginPanel from '~/components/LoginPanel.vue'
+import { onMounted, onUnmounted } from 'vue'
+import { ArrowRightOnRectangleIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
 const authStore = useAuthStore()
 const mobileMenuOpen = ref(false)
+const showSettings = ref(false)
+const showLogin = ref(false)
 
 const handleLogout = async () => {
   await authStore.logout()
   mobileMenuOpen.value = false
+  navigateTo('/')
 }
 
 // Close the mobile menu when clicking outside
@@ -143,5 +149,14 @@ onMounted(() => {
   onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside)
   })
+})
+
+// Obsługa zamykania LoginPanel przez event globalny
+const closeLoginPanel = () => { showLogin.value = false }
+onMounted(() => {
+  window.addEventListener('close-login-panel', closeLoginPanel)
+})
+onUnmounted(() => {
+  window.removeEventListener('close-login-panel', closeLoginPanel)
 })
 </script>

@@ -1,14 +1,2 @@
-fastapi
-uvicorn
-sqlalchemy
-python-dotenv
-pydantic
-pydantic[email]
-python-multipart
-python-jose[cryptography]
-passlib[bcrypt]
-alembic
-authlib
-httpx
-databases[sqlite]
-aiosqlite
+django
+djangorestframework
