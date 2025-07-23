@@ -83,9 +83,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
+import { useRuntimeConfig } from '#imports'
 
 const route = useRoute()
 const username = computed(() => route.params.username as string)
@@ -146,4 +147,17 @@ function sendFriendRequest(username: string) {
   console.log(`Wysyłanie zaproszenia do ${username}`)
   // Przykład: friends.value.push({ username: username, full_name: 'Nieznany' }) // Mockowanie dodania
 }
+
+onMounted(async () => {
+  const config = useRuntimeConfig()
+  // Pobierz profil użytkownika
+  userProfile.value = await $fetch(`${config.public.apiBase}/api/v1/users/${username.value}/`, {
+    headers: authStore.token ? { 'Authorization': `Token ${authStore.token}` } : {}
+  })
+  // Pobierz znajomych
+  friends.value = await $fetch(`${config.public.apiBase}/api/v1/users/${username.value}/friends/`, {
+    headers: authStore.token ? { 'Authorization': `Token ${authStore.token}` } : {}
+  })
+  // TODO: pobierz invitations i allUsers jeśli będą endpointy
+})
 </script>

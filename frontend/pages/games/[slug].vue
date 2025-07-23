@@ -4,15 +4,18 @@
       <button @click="$router.back()" class="text-blue-600 hover:underline text-sm">&larr; Powrót do listy gier</button>
       <h1 class="text-2xl font-bold">{{ gameTitle }}</h1>
     </div>
-    <div class="relative w-full aspect-video bg-gray-200 dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden flex items-center justify-center">
-      <iframe
-        v-if="iframeSrc"
-        :src="iframeSrc"
-        class="w-full h-full border-0 rounded-2xl"
-        allowfullscreen
-        @load="onLoad"
-        @error="onError"
-      ></iframe>
+    <div v-if="gameExists" class="relative w-full aspect-video bg-gray-200 dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden flex items-center justify-center">
+      <client-only>
+        <iframe
+          v-if="iframeVisible"
+          :src="iframeSrcWithKey"
+          class="w-full h-full border-0 rounded-2xl"
+          allowfullscreen
+          @load="onLoad"
+          @error="onError"
+          :key="slug"
+        ></iframe>
+      </client-only>
       <div v-if="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 z-10">
         <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -25,21 +28,48 @@
         <button @click="reload" class="btn-primary">Spróbuj ponownie</button>
       </div>
     </div>
+    <div v-else class="flex flex-col items-center justify-center py-20">
+      <svg class="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-1.414 1.414A9 9 0 105.636 18.364l1.414-1.414A7 7 0 1116.95 7.05z" />
+      </svg>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Gra nie istnieje</h2>
+      <p class="text-gray-600 dark:text-gray-300 mb-6">Nie znaleziono gry o podanym adresie.</p>
+      <NuxtLink to="/games" class="btn-primary">Powrót do listy gier</NuxtLink>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 const loading = ref(true)
 const error = ref(false)
+const iframeVisible = ref(true)
 
-const iframeSrc = computed(() => `/games/${slug.value}/index.html`)
+// Lista dostępnych gier (mock, docelowo z backendu)
+const availableGames = [
+  'zawomons',
+  'logic-game'
+]
+const gameExists = computed(() => availableGames.includes(slug.value))
+
+// UWAGA: Przenieś buildy Unity do public/unity-builds/[slug]/index.html
+const iframeSrc = computed(() => `/unity-builds/${slug.value}/index.html`)
+const iframeSrcWithKey = computed(() => `${iframeSrc.value}?v=${slug.value}`)
+
+watch(slug, () => {
+  iframeVisible.value = false
+  setTimeout(() => {
+    iframeVisible.value = true
+    loading.value = true
+    error.value = false
+  }, 50)
+})
+
 const gameTitle = computed(() => {
-  // Możesz rozwinąć o pobieranie tytułu z API lub na podstawie slug
   if (slug.value === 'zawomons') return 'Zawomons'
   if (slug.value === 'logic-game') return 'Gra logiczna'
   return 'Gra'
@@ -56,7 +86,6 @@ function onError() {
 function reload() {
   loading.value = true
   error.value = false
-  // Wymuszenie przeładowania iframe przez zmianę klucza
   window.location.reload()
 }
 </script>

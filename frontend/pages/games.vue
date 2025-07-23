@@ -2,9 +2,11 @@
   <div class="max-w-6xl mx-auto py-10 px-4">
     <h1 class="text-3xl font-bold mb-8 text-center">Lista gier</h1>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      <NuxtLink
+      <a
         v-for="game in games" :key="game.id"
-        :to="game.url"
+        :href="game.url"
+        target="_blank"
+        rel="noopener"
         class="relative group bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-1"
       >
         <div class="h-48 w-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
@@ -22,7 +24,7 @@
           </div>
         </div>
         <div class="absolute inset-0 bg-blue-50 dark:bg-blue-900 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
-      </NuxtLink>
+      </a>
     </div>
   </div>
 </template>
@@ -30,11 +32,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { UserGroupIcon, UserIcon } from '@heroicons/vue/24/solid'
-// import { useRouter } from 'vue-router'
 
-// const router = useRouter()
-
-// Przykładowa gra Unity WebGL (umieść build w public/games/zawomons/index.html)
 const games = ref([
   {
     id: 1,

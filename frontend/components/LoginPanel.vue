@@ -9,11 +9,15 @@
       <div class="space-y-6">
         <!-- Header -->
         <div class="text-center">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Witaj ponownie!</h1>
-          <p class="text-gray-600">Zaloguj się, aby uzyskać dostęp do swojego konta</p>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            {{ isRegister ? 'Załóż konto' : 'Witaj ponownie!' }}
+          </h1>
+          <p class="text-gray-600">
+            {{ isRegister ? 'Utwórz nowe konto, aby korzystać z aplikacji' : 'Zaloguj się, aby uzyskać dostęp do swojego konta' }}
+          </p>
         </div>
         <!-- Social Login Buttons -->
-        <div class="space-y-4">
+        <div class="space-y-4" v-if="!isRegister">
           <a :href="googleLoginUrl" class="w-full flex justify-center items-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium">
             <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -39,8 +43,31 @@
             <span class="px-2 bg-white text-gray-500">lub</span>
           </div>
         </div>
+        <!-- Formularz logowania/rejestracji -->
+        <form @submit.prevent="isRegister ? handleRegister() : handleLogin()" class="space-y-4">
+          <div v-if="isRegister">
+            <input v-model="registerEmail" type="email" placeholder="Email" class="input-field mb-2" required />
+            <input v-model="registerUsername" type="text" placeholder="Nazwa użytkownika" class="input-field mb-2" required />
+            <input v-model="registerPassword1" type="password" placeholder="Hasło" class="input-field mb-2" required />
+            <input v-model="registerPassword2" type="password" placeholder="Powtórz hasło" class="input-field mb-2" required />
+          </div>
+          <div v-else>
+            <input v-model="loginIdentifier" type="text" placeholder="Email lub login" class="input-field mb-2" required />
+            <input v-model="loginPassword" type="password" placeholder="Hasło" class="input-field mb-2" required />
+          </div>
+          <button type="submit" :disabled="loading" class="btn-primary w-full">
+            <span v-if="loading" class="animate-spin mr-2">⏳</span>
+            {{ isRegister ? 'Zarejestruj się' : 'Zaloguj się' }}
+          </button>
+        </form>
+        <!-- Przełącznik trybu -->
+        <div class="text-center mt-2">
+          <button @click="isRegister = !isRegister" class="text-blue-600 hover:underline text-sm">
+            {{ isRegister ? 'Masz już konto? Zaloguj się' : 'Nie masz konta? Zarejestruj się' }}
+          </button>
+        </div>
         <!-- Continue as Guest -->
-        <button @click="continueAsGuest" :disabled="loading" class="w-full flex justify-center items-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors duration-200 font-medium">
+        <button v-if="!isRegister" @click="continueAsGuest" :disabled="loading" class="w-full flex justify-center items-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors duration-200 font-medium">
           <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -78,9 +105,56 @@ const config = useRuntimeConfig()
 
 const loading = ref(false)
 const error = ref('')
+const isRegister = ref(false)
 
-const googleLoginUrl = computed(() => `${config.public.apiBase}/auth/google`)
-const facebookLoginUrl = computed(() => `${config.public.apiBase}/auth/facebook`)
+// Login form
+const loginIdentifier = ref('')
+const loginPassword = ref('')
+
+// Register form
+const registerEmail = ref('')
+const registerUsername = ref('')
+const registerPassword1 = ref('')
+const registerPassword2 = ref('')
+
+const googleLoginUrl = computed(() => `${config.public.apiBase}/api/v1/accounts/google/login/?process=login`)
+const facebookLoginUrl = computed(() => `${config.public.apiBase}/api/v1/accounts/facebook/login/`)
+
+const handleLogin = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    await authStore.login(loginIdentifier.value, loginPassword.value)
+    await navigateTo('/')
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('close-login-panel'))
+    }, 100)
+  } catch (err: any) {
+    error.value = err.message || 'Błąd logowania'
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleRegister = async () => {
+  if (registerPassword1.value !== registerPassword2.value) {
+    error.value = 'Hasła nie są zgodne'
+    return
+  }
+  try {
+    loading.value = true
+    error.value = ''
+    await authStore.register(registerEmail.value, registerUsername.value, registerPassword1.value, registerPassword2.value)
+    await navigateTo('/')
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('close-login-panel'))
+    }, 100)
+  } catch (err: any) {
+    error.value = err.message || 'Błąd rejestracji'
+  } finally {
+    loading.value = false
+  }
+}
 
 const continueAsGuest = async () => {
   try {

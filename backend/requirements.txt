@@ -1,2 +1,11 @@
-django
+django>=5.2.4
 djangorestframework
+django-allauth==0.54.0
+dj-rest-auth
+social-auth-app-django
+python-dotenv
+pillow
+drf-spectacular
+django-cors-headers
+djangorestframework-simplejwt
+dj-rest-auth[with_jwt]

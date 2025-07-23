@@ -10,12 +10,18 @@
         </div>
 
         <!-- Navigation -->
-        <nav class="hidden md:flex space-x-8">
-          <NuxtLink to="/admin" class="text-gray-700 hover:text-blue-600 transition-colors">
-            Admin
+        <nav class="hidden md:flex space-x-4">
+          <NuxtLink to="/admin" class="nav-btn">
+            <span class="nav-btn__icon">
+              <AdjustmentsVerticalIcon class="w-5 h-5 mr-1" />
+            </span>
+            <span>Admin</span>
           </NuxtLink>
-          <NuxtLink to="/games" class="text-gray-700 hover:text-blue-600 transition-colors">
-            Gry
+          <NuxtLink to="/games" class="nav-btn">
+            <span class="nav-btn__icon">
+              <PlayIcon class="w-5 h-5 mr-1" />
+            </span>
+            <span>Gry</span>
           </NuxtLink>
         </nav>
 
@@ -42,8 +48,8 @@
                 <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
                   {{ authStore.displayName }}
                 </p>
-                <p v-if="authStore.user" class="text-xs text-gray-500">
-                  {{ authStore.user.role === 'admin' ? 'Administrator' : 'Użytkownik' }}
+                <p v-if="userRoleLabel" class="text-xs text-gray-500">
+                  {{ userRoleLabel }}
                 </p>
                 <p v-else-if="authStore.isGuest" class="text-xs text-gray-500">
                   Gość
@@ -90,18 +96,18 @@
       <div v-if="mobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
           <NuxtLink
-              to="/dashboard"
+              to="/admin"
               class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
               @click="mobileMenuOpen = false"
           >
-            Dashboard
+            Panel Admina
           </NuxtLink>
           <NuxtLink
-              to="/users"
+              to="/games"
               class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
               @click="mobileMenuOpen = false"
           >
-            Użytkownicy
+            Gry
           </NuxtLink>
           <NuxtLink
               v-if="authStore.user"
@@ -122,12 +128,19 @@
 <script setup lang="ts">
 import SettingsPanel from '~/components/SettingsPanel.vue'
 import LoginPanel from '~/components/LoginPanel.vue'
-import { onMounted, onUnmounted } from 'vue'
-import { ArrowRightOnRectangleIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
+import { onMounted, onUnmounted, computed } from 'vue'
+import { ArrowRightOnRectangleIcon, Cog6ToothIcon, WrenchScrewdriverIcon, PuzzlePieceIcon } from '@heroicons/vue/24/outline'
+import { AdjustmentsVerticalIcon, PlayIcon } from '@heroicons/vue/24/solid'
 const authStore = useAuthStore()
 const mobileMenuOpen = ref(false)
 const showSettings = ref(false)
 const showLogin = ref(false)
+
+const userRoleLabel = computed(() => {
+  if (authStore.user?.role === 'admin') return 'Administrator'
+  if (authStore.user?.role === 'user') return 'Użytkownik'
+  return ''
+})
 
 const handleLogout = async () => {
   await authStore.logout()
@@ -160,3 +173,29 @@ onUnmounted(() => {
   window.removeEventListener('close-login-panel', closeLoginPanel)
 })
 </script>
+
+<style scoped>
+.nav-btn {
+  @apply flex items-center px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-sm bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-800 text-gray-800 dark:text-white hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900 dark:hover:to-purple-900 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+  position: relative;
+  overflow: hidden;
+}
+.nav-btn__icon {
+  @apply flex items-center;
+}
+.nav-btn::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg,rgba(59,130,246,0.08),rgba(168,85,247,0.08));
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 0;
+}
+.nav-btn:hover::after {
+  opacity: 1;
+}
+.nav-btn:active {
+  @apply scale-95;
+}
+</style>
