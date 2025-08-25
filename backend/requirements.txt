@@ -1,6 +1,6 @@
 django>=5.2.4
 djangorestframework
-django-allauth==0.54.0
+django-allauth>=0.63.3
 dj-rest-auth
 social-auth-app-django
 python-dotenv

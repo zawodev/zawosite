@@ -164,7 +164,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-] + MIDDLEWARE
+]
 
 CORS_ALLOW_ALL_ORIGINS = True  # lub ogranicz do domeny frontendu
 
@@ -188,10 +188,15 @@ LOGIN_REDIRECT_URL = FRONTEND_URL
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
 SOCIALACCOUNT_LOGIN_REDIRECT_URL = FRONTEND_URL
 
-ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*', 'password2*']
-ACCOUNT_LOGIN_METHODS = {'username', 'email'}
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_SIGNUP_FIELDS = {
+    'username': {'required': True},
+    'password1': {'required': True},
+    'password2': {'required': True},
+}
+ACCOUNT_LOGIN_METHODS = {'username'}
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_EMAIL_REQUIRED = False
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -239,4 +244,8 @@ SPECTACULAR_SETTINGS = {
 
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'users.serializers.CustomRegisterSerializer',
+}
+
+REST_AUTH_SERIALIZERS = {
+    'LOGIN_SERIALIZER': 'users.serializers.CustomLoginSerializer',
 }

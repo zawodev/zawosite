@@ -3,7 +3,7 @@ from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import User
-from .serializers import UserSerializer, FriendSerializer
+from .serializers import UserSerializer, FriendSerializer, CustomRegisterSerializer, CustomLoginSerializer
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from dj_rest_auth.utils import jwt_encode
@@ -126,3 +126,59 @@ class SocialLoginCallbackView(View):
         url = settings.FRONTEND_URL + "/auth/callback?" + urllib.parse.urlencode(params)
         print(f"[CUSTOM SSO CALLBACK] user={user.username} token={token} url={url}")
         return HttpResponseRedirect(url)
+
+@extend_schema(request=CustomRegisterSerializer, responses={'201': {'description': 'User created successfully'}})
+class CustomRegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        serializer = CustomRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(request)
+            
+            # Generuj token JWT
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            
+            # Zwróć dane użytkownika i token
+            user_data = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role
+            }
+            
+            return Response({
+                "key": access_token,
+                "user": user_data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@extend_schema(request=CustomLoginSerializer, responses={'200': {'description': 'Login successful'}})
+class CustomLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        serializer = CustomLoginSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            
+            # Generuj token JWT
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            
+            # Zwróć dane użytkownika i token
+            user_data = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role
+            }
+            
+            return Response({
+                "key": access_token,
+                "user": user_data
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

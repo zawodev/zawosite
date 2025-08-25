@@ -27,7 +27,7 @@ export const useAuthStore = defineStore('auth', {
     getters: {
         isAuthenticated: (state) => !!state.token && !!state.user,
         displayName: (state) => {
-            if (state.user) return state.user.full_name
+            if (state.user) return state.user.username || state.user.full_name
             if (state.isGuest) return 'Gość'
             return 'Niezalogowany'
         }
@@ -49,6 +49,13 @@ export const useAuthStore = defineStore('auth', {
         setUser(user: User) {
             this.user = user
             this.isGuest = false
+            this.saveToStorage()
+        },
+        setGuestMode() {
+            this.token = null
+            this.refreshToken = null
+            this.user = null
+            this.isGuest = true
             this.saveToStorage()
         },
         async refreshTokenIfNeeded() {
@@ -175,35 +182,85 @@ export const useAuthStore = defineStore('auth', {
             })
         },
 
-        async login(identifier: string, password: string) {
+        async login(username: string, password: string) {
             const config = useRuntimeConfig()
             try {
                 const { key, user } = await $fetch<any>('/api/v1/auth/login/', {
                     method: 'POST',
                     baseURL: config.public.apiBase,
-                    body: { email: identifier, username: identifier, password },
+                    body: { username, password },
                     headers: { 'Content-Type': 'application/json' }
                 })
                 this.setAuth(key, user)
                 return user
             } catch (err: any) {
-                throw new Error(err.data?.non_field_errors?.[0] || err.data?.detail || 'Błąd logowania')
+                let errorMessage = 'Błąd logowania'
+                
+                // Obsługa różnych typów błędów logowania
+                if (err.data) {
+                    if (err.data.non_field_errors && Array.isArray(err.data.non_field_errors)) {
+                        const error = err.data.non_field_errors[0]
+                        if (error.includes('Unable to log in')) {
+                            errorMessage = 'Nieprawidłowa nazwa użytkownika lub hasło'
+                        } else if (error.includes('account is disabled')) {
+                            errorMessage = 'Konto zostało zablokowane'
+                        } else {
+                            errorMessage = error
+                        }
+                    } else if (err.data.detail) {
+                        errorMessage = err.data.detail
+                    } else if (err.data.username && Array.isArray(err.data.username)) {
+                        errorMessage = 'Nazwa użytkownika jest wymagana'
+                    } else if (err.data.password && Array.isArray(err.data.password)) {
+                        errorMessage = 'Hasło jest wymagane'
+                    }
+                }
+                
+                throw new Error(errorMessage)
             }
         },
 
-        async register(email: string, username: string, password1: string, password2: string) {
+        async register(username: string, password1: string, password2: string) {
             const config = useRuntimeConfig()
             try {
                 const { key, user } = await $fetch<any>('/api/v1/auth/registration/', {
                     method: 'POST',
                     baseURL: config.public.apiBase,
-                    body: { email, username, password1, password2 },
+                    body: { username, password1, password2 },
                     headers: { 'Content-Type': 'application/json' }
                 })
                 this.setAuth(key, user)
                 return user
             } catch (err: any) {
-                throw new Error(err.data?.non_field_errors?.[0] || err.data?.detail || 'Błąd rejestracji')
+                let errorMessage = 'Błąd rejestracji'
+                
+                // Obsługa różnych typów błędów
+                if (err.data) {
+                    if (err.data.username && Array.isArray(err.data.username)) {
+                        errorMessage = err.data.username[0]
+                        if (errorMessage.includes('already exists')) {
+                            errorMessage = 'Użytkownik o tej nazwie już istnieje'
+                        }
+                    } else if (err.data.non_field_errors && Array.isArray(err.data.non_field_errors)) {
+                        errorMessage = err.data.non_field_errors[0]
+                        if (errorMessage.includes("didn't match")) {
+                            errorMessage = 'Podane hasła nie są identyczne'
+                        }
+                    } else if (err.data.password1 && Array.isArray(err.data.password1)) {
+                        errorMessage = err.data.password1[0]
+                        if (errorMessage.includes('too short')) {
+                            errorMessage = 'Hasło jest zbyt krótkie (minimum 8 znaków)'
+                        } else if (errorMessage.includes('too common')) {
+                            errorMessage = 'Hasło jest zbyt popularne - wybierz bardziej unikalny'
+                        } else if (errorMessage.includes('entirely numeric')) {
+                            errorMessage = 'Hasło nie może składać się wyłącznie z cyfr'
+                        }
+                    } else if (err.data.detail) {
+                        errorMessage = err.data.detail
+                    }
+                }
+                
+                throw new Error(errorMessage)
             }
         },
 

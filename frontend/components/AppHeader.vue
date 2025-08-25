@@ -35,14 +35,14 @@
               <img
                   v-if="authStore.user?.avatar_url"
                   :src="authStore.user.avatar_url"
-                  :alt="authStore.user.full_name"
+                  :alt="authStore.user.username"
                   class="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm"
               >
               <div
                   v-else
                   class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm shadow-sm"
               >
-                {{ authStore.isGuest ? 'G' : authStore.user?.full_name?.charAt(0).toUpperCase() }}
+                {{ authStore.isGuest ? 'G' : authStore.user?.username?.charAt(0).toUpperCase() }}
               </div>
               <div class="hidden sm:block">
                 <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">

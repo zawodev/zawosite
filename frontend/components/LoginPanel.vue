@@ -46,13 +46,12 @@
         <!-- Formularz logowania/rejestracji -->
         <form @submit.prevent="isRegister ? handleRegister() : handleLogin()" class="space-y-4">
           <div v-if="isRegister">
-            <input v-model="registerEmail" type="email" placeholder="Email" class="input-field mb-2" required />
             <input v-model="registerUsername" type="text" placeholder="Nazwa użytkownika" class="input-field mb-2" required />
             <input v-model="registerPassword1" type="password" placeholder="Hasło" class="input-field mb-2" required />
             <input v-model="registerPassword2" type="password" placeholder="Powtórz hasło" class="input-field mb-2" required />
           </div>
           <div v-else>
-            <input v-model="loginIdentifier" type="text" placeholder="Email lub login" class="input-field mb-2" required />
+            <input v-model="loginUsername" type="text" placeholder="Nazwa użytkownika" class="input-field mb-2" required />
             <input v-model="loginPassword" type="password" placeholder="Hasło" class="input-field mb-2" required />
           </div>
           <button type="submit" :disabled="loading" class="btn-primary w-full">
@@ -108,11 +107,10 @@ const error = ref('')
 const isRegister = ref(false)
 
 // Login form
-const loginIdentifier = ref('')
+const loginUsername = ref('')
 const loginPassword = ref('')
 
 // Register form
-const registerEmail = ref('')
 const registerUsername = ref('')
 const registerPassword1 = ref('')
 const registerPassword2 = ref('')
@@ -124,7 +122,7 @@ const handleLogin = async () => {
   try {
     loading.value = true
     error.value = ''
-    await authStore.login(loginIdentifier.value, loginPassword.value)
+    await authStore.login(loginUsername.value, loginPassword.value)
     await navigateTo('/')
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('close-login-panel'))
@@ -144,7 +142,7 @@ const handleRegister = async () => {
   try {
     loading.value = true
     error.value = ''
-    await authStore.register(registerEmail.value, registerUsername.value, registerPassword1.value, registerPassword2.value)
+    await authStore.register(registerUsername.value, registerPassword1.value, registerPassword2.value)
     await navigateTo('/')
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('close-login-panel'))

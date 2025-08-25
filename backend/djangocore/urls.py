@@ -19,12 +19,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from users.views import SocialLoginCallbackView
+from users.views import SocialLoginCallbackView, CustomRegisterView, CustomLoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/auth/', include('dj_rest_auth.urls')),
-    path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('api/v1/auth/login/', CustomLoginView.as_view(), name='custom_login'),
+    path('api/v1/auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
     path('api/v1/accounts/', include('allauth.urls')),
     path('api/v1/users/', include('users.urls')),
     path('api/v1/games/', include('games.urls')),
