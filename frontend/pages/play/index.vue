@@ -2,11 +2,9 @@
   <div class="max-w-6xl mx-auto py-10 px-4">
     <h1 class="text-3xl font-bold mb-8 text-center">Lista gier</h1>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      <a
+      <NuxtLink
         v-for="game in games" :key="game.id"
-        :href="game.url"
-        target="_blank"
-        rel="noopener"
+        :to="game.url"
         class="relative group bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-1"
       >
         <div class="h-48 w-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
@@ -24,7 +22,7 @@
           </div>
         </div>
         <div class="absolute inset-0 bg-blue-50 dark:bg-blue-900 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
-      </a>
+      </NuxtLink>
     </div>
   </div>
 </template>
@@ -43,7 +41,7 @@ const games = ref([
       { icon: UserGroupIcon, text: 'Multiplayer' },
       { icon: UserIcon, text: 'Singleplayer' }
     ],
-    url: '/games/zawomons'
+    url: '/play/zawomons'
   },
   {
     id: 2,
@@ -53,9 +51,8 @@ const games = ref([
     tags: [
       { icon: UserIcon, text: 'Singleplayer' }
     ],
-    url: '/games/logic-game'
-  },
-  // Dodaj kolejne gry...
+    url: '/play/logic-game'
+  }
 ])
 </script>
 
@@ -63,4 +60,4 @@ const games = ref([
 .group:hover .group-hover\:scale-110 {
   transform: scale(1.10);
 }
-</style> 
+</style>

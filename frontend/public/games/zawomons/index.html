@@ -9,7 +9,7 @@
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=480 height=270 tabindex="-1"></canvas>
+      <canvas id="unity-canvas" width=800 height=450 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -52,16 +52,16 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/v0.2.loader.js";
+      var loaderUrl = buildUrl + "/v0.1.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/v0.2.data",
-        frameworkUrl: buildUrl + "/v0.2.framework.js",
-        codeUrl: buildUrl + "/v0.2.wasm",
+        dataUrl: buildUrl + "/v0.1.data",
+        frameworkUrl: buildUrl + "/v0.1.framework.js",
+        codeUrl: buildUrl + "/v0.1.wasm",
         streamingAssetsUrl: "StreamingAssets",
-        companyName: "zawodowo",
+        companyName: "DefaultCompany",
         productName: "zawomons",
-        productVersion: "0.1",
+        productVersion: "1.0",
         showBanner: unityShowBanner,
       };
 
@@ -98,8 +98,8 @@
 
       } else {
         // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "480px";
-        canvas.style.height = "270px";
+        canvas.style.width = "800px";
+        canvas.style.height = "450px";
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
@@ -110,10 +110,25 @@
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
               }).then((unityInstance) => {
+                // Przypisz do window żeby było dostępne globalnie
+                window.unityInstance = unityInstance;
+                
                 document.querySelector("#unity-loading-bar").style.display = "none";
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
+                
+                // Nasłuchuj na wiadomości od parent window
+                window.addEventListener('message', function(event) {
+                  if (event.data && event.data.type === 'AUTH_TOKEN') {
+                    try {
+                      unityInstance.SendMessage('GameManager', 'SetAuthToken', event.data.token || '');
+                      console.log('Unity otrzymało token przez postMessage:', event.data.token ? event.data.token.substring(0, 10) + '...' : 'empty');
+                    } catch (error) {
+                      console.error('Błąd w Unity przy odbieraniu tokena:', error);
+                    }
+                  }
+                });
 
               }).catch((message) => {
                 alert(message);

@@ -18,7 +18,7 @@
             <h3 class="link-group-title">Nawigacja</h3>
             <ul class="link-list">
               <li><NuxtLink to="/admin" class="footer-link">Panel Admina</NuxtLink></li>
-              <li><NuxtLink to="/games" class="footer-link">Gry</NuxtLink></li>
+              <li><NuxtLink to="/play" class="footer-link">Gry</NuxtLink></li>
               <li v-if="authStore.user">
                 <NuxtLink :to="`/profile/${authStore.user.username}`" class="footer-link">
                   Mój Profil

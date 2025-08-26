@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -179,6 +180,10 @@ REST_FRAMEWORK = {
 REST_USE_JWT = True
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),  # 1 rok - praktycznie nieskończoność
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=365),
+    'ROTATE_REFRESH_TOKENS': True,  # Automatycznie odnawiaj refresh tokeny
+    'BLACKLIST_AFTER_ROTATION': False,  # Nie blacklistuj starych tokenów
 }
 
 SITE_ID = 1

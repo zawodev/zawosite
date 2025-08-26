@@ -1,11 +1,20 @@
 from django.urls import path
-from .views import GameList, GameDetail, GameSaveListCreate, GameSaveDetail, GameSaveForUser, GameSaveForFriends
+from .views import (GameList, ZawomonsPlayerDataGetView, 
+                   ZawomonsSetSingleResourceView, ZawomonsPlayersListView,
+                   ZawomonsCreatureGetView, ZawomonsCreatureAddView, 
+                   ZawomonsCreatureSetView)
 
 urlpatterns = [
+    # Ogólne endpointy gier
     path('', GameList.as_view(), name='game-list'),
-    path('<int:pk>/', GameDetail.as_view(), name='game-detail'),
-    path('saves/', GameSaveListCreate.as_view(), name='game-save-list-create'),
-    path('saves/<int:pk>/', GameSaveDetail.as_view(), name='game-save-detail'),
-    path('saves/user/<int:user_id>/', GameSaveForUser.as_view(), name='game-save-for-user'),
-    path('saves/friends/', GameSaveForFriends.as_view(), name='game-save-for-friends'),
+    
+    # Endpointy specyficzne dla gry Zawomons
+    path('zawomons/player-data-get/', ZawomonsPlayerDataGetView.as_view(), name='zawomons-player-data-get'),
+    path('zawomons/set-single-resource/', ZawomonsSetSingleResourceView.as_view(), name='zawomons-set-single-resource'),
+    path('zawomons/players/', ZawomonsPlayersListView.as_view(), name='zawomons-players-list'),
+    
+    # Endpointy dla zarządzania stworkami
+    path('zawomons/creature-get/<int:creature_id>/', ZawomonsCreatureGetView.as_view(), name='zawomons-creature-get'),
+    path('zawomons/creature-add/', ZawomonsCreatureAddView.as_view(), name='zawomons-creature-add'),
+    path('zawomons/creature-set/', ZawomonsCreatureSetView.as_view(), name='zawomons-creature-set'),
 ] 

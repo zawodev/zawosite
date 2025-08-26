@@ -17,7 +17,7 @@
             </span>
             <span>Admin</span>
           </NuxtLink>
-          <NuxtLink to="/games" class="nav-btn">
+          <NuxtLink to="/play" class="nav-btn">
             <span class="nav-btn__icon">
               <PlayIcon class="w-5 h-5 mr-1" />
             </span>
