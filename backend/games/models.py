@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 class Game(models.Model):
     """Model reprezentujący grę w systemie"""
@@ -72,34 +73,23 @@ class Creature(models.Model):
         return f"{self.name} ({self.main_element}) - {self.player_data.user.username}"
 
 class CreatureSpell(models.Model):
-    """Model przechowujący znane spelle creature"""
-    creature = models.ForeignKey(Creature, on_delete=models.CASCADE, related_name='known_spells')
+    """Model przechowujący spelle creature z informacjami o nauce"""
+    creature = models.ForeignKey(Creature, on_delete=models.CASCADE, related_name='spells')
     spell_id = models.IntegerField()  # ID spella z Unity (statyczna lista)
-    learned_at = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField()  # Czas rozpoczęcia nauki (UTC)
+    end_time = models.DateTimeField()    # Czas zakończenia nauki (UTC)
+    is_learned = models.BooleanField(default=False)  # Czy spell został już nauczony
+    
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     
     class Meta:
         unique_together = ('creature', 'spell_id')
+        indexes = [
+            models.Index(fields=['creature', 'is_learned']),
+            models.Index(fields=['end_time']),
+        ]
     
     def __str__(self):
-        return f"{self.creature.name} - Spell {self.spell_id}"
-
-class CreatureLearningSpell(models.Model):
-    """Model dla spelli których creature się obecnie uczy"""
-    creature = models.ForeignKey(Creature, on_delete=models.CASCADE, related_name='learning_spells')
-    spell_id = models.IntegerField()  # ID spella z Unity
-    
-    # Czasowniki UTC dla nauki spella
-    start_time_utc = models.DateTimeField()
-    end_time_utc = models.DateTimeField()
-    
-    # Status nauki
-    is_completed = models.BooleanField(default=False)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ('creature', 'spell_id')
-    
-    def __str__(self):
-        status = "Completed" if self.is_completed else "Learning"
-        return f"{self.creature.name} - Learning Spell {self.spell_id} ({status})"
+        status = "Learned" if self.is_learned else "Learning"
+        return f"{self.creature.name} - Spell {self.spell_id} ({status})"

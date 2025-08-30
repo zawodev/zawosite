@@ -2,11 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Game, PlayerData, Creature
+from .models import Game, PlayerData, Creature, CreatureSpell
 from .serializers import (GameSerializer, PlayerDataSerializer, 
                          PlayerListSerializer, UpdateSingleResourceSerializer,
                          CreatureSerializer, CreatureCreateSerializer, 
-                         CreatureUpdateSerializer)
+                         CreatureUpdateSerializer, SpellLearnSerializer,
+                         SpellCompleteSerializer, CreatureSpellSerializer)
 from users.models import User
 from drf_spectacular.utils import extend_schema
 
@@ -152,17 +153,30 @@ class ZawomonsCreatureAddView(APIView):
             
             serializer = CreatureCreateSerializer(data=request.data)
             if serializer.is_valid():
+                # Pobierz spelle z danych (jeśli są)
+                spells_data = serializer.validated_data.pop('spells', [])
+                
                 # Stwórz nowego stworka z automatycznym ustawieniem właściciela
                 creature = serializer.save(
                     owner=request.user,
                     player_data=player_data
                 )
                 
+                # Dodaj spelle do stworka (jeśli zostały podane)
+                for spell_data in spells_data:
+                    CreatureSpell.objects.create(
+                        creature=creature,
+                        spell_id=spell_data.get('spell_id'),
+                        start_time=spell_data.get('start_time'),
+                        end_time=spell_data.get('end_time'),
+                        is_learned=spell_data.get('is_learned', False)
+                    )
+                
                 # Wyłącz flagę can_claim_start_creature po dodaniu stworka
                 player_data.can_claim_start_creature = False
                 player_data.save()
                 
-                # Zwróć szczegóły stworzonego stworka
+                # Zwróć szczegóły stworzonego stworka (ze spellami)
                 response_serializer = CreatureSerializer(creature)
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             
@@ -199,6 +213,81 @@ class ZawomonsCreatureSetView(APIView):
                 return Response(response_serializer.data, status=status.HTTP_200_OK)
             
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Views for Spell management
+class ZawomonsSpellLearnView(APIView):
+    """POST: Rozpocznij naukę nowego spella dla creature"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @extend_schema(request=SpellLearnSerializer, responses=CreatureSpellSerializer)
+    def post(self, request):
+        try:
+            serializer = SpellLearnSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            creature_id = serializer.validated_data['creature_id']
+            creature = get_object_or_404(Creature, id=creature_id)
+            
+            # Sprawdź czy użytkownik jest właścicielem creature
+            if creature.owner != request.user:
+                return Response({'error': 'Nie masz dostępu do tego stworka'}, 
+                              status=status.HTTP_403_FORBIDDEN)
+            
+            # Stwórz lub zaktualizuj spell
+            spell, created = CreatureSpell.objects.update_or_create(
+                creature=creature,
+                spell_id=serializer.validated_data['spell_id'],
+                defaults={
+                    'start_time': serializer.validated_data['start_time'],
+                    'end_time': serializer.validated_data['end_time'],
+                    'is_learned': False  # Zawsze false przy rozpoczęciu nauki
+                }
+            )
+            
+            response_serializer = CreatureSpellSerializer(spell)
+            status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            return Response(response_serializer.data, status=status_code)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ZawomonsSpellCompleteView(APIView):
+    """POST: Oznacz spell jako nauczony"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @extend_schema(request=SpellCompleteSerializer, responses=CreatureSpellSerializer)
+    def post(self, request):
+        try:
+            serializer = SpellCompleteSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            creature_id = serializer.validated_data['creature_id']
+            spell_id = serializer.validated_data['spell_id']
+            
+            creature = get_object_or_404(Creature, id=creature_id)
+            
+            # Sprawdź czy użytkownik jest właścicielem creature
+            if creature.owner != request.user:
+                return Response({'error': 'Nie masz dostępu do tego stworka'}, 
+                              status=status.HTTP_403_FORBIDDEN)
+            
+            # Znajdź i zaktualizuj spell
+            try:
+                spell = CreatureSpell.objects.get(creature=creature, spell_id=spell_id)
+                spell.is_learned = True
+                spell.save()
+                
+                response_serializer = CreatureSpellSerializer(spell)
+                return Response(response_serializer.data, status=status.HTTP_200_OK)
+                
+            except CreatureSpell.DoesNotExist:
+                return Response({'error': 'Spell nie istnieje dla tego stworka'}, 
+                              status=status.HTTP_404_NOT_FOUND)
             
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
