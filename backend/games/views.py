@@ -55,9 +55,33 @@ class ZawomonsPlayersListView(APIView):
     def get(self, request):
         try:
             game = get_object_or_404(Game, slug='zawomons')
-            players = PlayerData.objects.filter(game=game).order_by('-gold')
+            players = PlayerData.objects.filter(game=game).order_by('-experience')
             
             serializer = PlayerListSerializer(players, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ZawomonsFriendsListView(APIView):
+    """GET: Lista znajomych gracza w grze Zawomons"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @extend_schema(responses=PlayerListSerializer(many=True))
+    def get(self, request):
+        try:
+            game = get_object_or_404(Game, slug='zawomons')
+            
+            # Pobierz IDs znajomych aktualnego użytkownika
+            friend_ids = request.user.friends.values_list('id', flat=True)
+            
+            # Pobierz PlayerData znajomych dla gry Zawomons
+            friends_player_data = PlayerData.objects.filter(
+                game=game,
+                user_id__in=friend_ids
+            ).order_by('-experience')
+            
+            serializer = PlayerListSerializer(friends_player_data, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except Exception as e:
@@ -100,6 +124,8 @@ class ZawomonsSetSingleResourceView(APIView):
                 player_data.stone = value
             elif resource_type == 'gems':
                 player_data.gems = value
+            elif resource_type == 'experience':
+                player_data.experience = value
             
             player_data.save()
             

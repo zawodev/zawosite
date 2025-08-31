@@ -24,6 +24,7 @@ class PlayerData(models.Model):
     wood = models.IntegerField(default=50)
     stone = models.IntegerField(default=25)
     gems = models.IntegerField(default=5)
+    experience = models.IntegerField(default=0)  # Doświadczenie gracza
     can_claim_start_creature = models.BooleanField(default=True)  # Czy gracz może odebrać pierwszego stworka
     
     # Metadane Django

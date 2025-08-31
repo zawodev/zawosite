@@ -31,7 +31,7 @@ class PlayerDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerData
         fields = [
-            'id', 'username', 'gold', 'wood', 'stone', 'gems', 'can_claim_start_creature',
+            'id', 'username', 'gold', 'wood', 'stone', 'gems', 'experience', 'can_claim_start_creature',
             'creatures', 'last_played', 'created_at'
         ]
         read_only_fields = ['username', 'last_played', 'created_at']
@@ -43,6 +43,7 @@ class UpdateSingleResourceSerializer(serializers.Serializer):
         ('wood', 'Wood'), 
         ('stone', 'Stone'),
         ('gems', 'Gems'),
+        ('experience', 'Experience'),
     ]
     
     resource_type = serializers.ChoiceField(choices=RESOURCE_CHOICES)
@@ -52,13 +53,21 @@ class PlayerListSerializer(serializers.ModelSerializer):
     """Uproszczony serializer dla listy graczy"""
     username = serializers.CharField(source='user.username', read_only=True)
     creature_count = serializers.SerializerMethodField()
+    is_online = serializers.SerializerMethodField()
     
     def get_creature_count(self, obj):
         return obj.creatures.count()
     
+    def get_is_online(self, obj):
+        # Gracz jest online jeśli był aktywny w ciągu ostatnich 5 minut
+        from django.utils import timezone
+        from datetime import timedelta
+        threshold = timezone.now() - timedelta(minutes=5)
+        return obj.last_played >= threshold
+    
     class Meta:
         model = PlayerData
-        fields = ['username', 'gold', 'creature_count', 'last_played']
+        fields = ['username', 'experience', 'creature_count', 'is_online']
 
 # Serializers dla operacji na creatures
 class CreatureCreateSerializer(serializers.ModelSerializer):

@@ -1,9 +1,9 @@
 from django.urls import path
 from .views import (GameList, ZawomonsPlayerDataGetView, 
                    ZawomonsSetSingleResourceView, ZawomonsPlayersListView,
-                   ZawomonsCreatureGetView, ZawomonsCreatureAddView, 
-                   ZawomonsCreatureSetView, ZawomonsSpellLearnView,
-                   ZawomonsSpellCompleteView)
+                   ZawomonsFriendsListView, ZawomonsCreatureGetView, 
+                   ZawomonsCreatureAddView, ZawomonsCreatureSetView, 
+                   ZawomonsSpellLearnView, ZawomonsSpellCompleteView)
 
 urlpatterns = [
     # Ogólne endpointy gier
@@ -13,6 +13,7 @@ urlpatterns = [
     path('zawomons/player-data-get/', ZawomonsPlayerDataGetView.as_view(), name='zawomons-player-data-get'),
     path('zawomons/set-single-resource/', ZawomonsSetSingleResourceView.as_view(), name='zawomons-set-single-resource'),
     path('zawomons/players/', ZawomonsPlayersListView.as_view(), name='zawomons-players-list'),
+    path('zawomons/friends/', ZawomonsFriendsListView.as_view(), name='zawomons-friends-list'),
     
     # Endpointy dla zarządzania stworkami
     path('zawomons/creature-get/<int:creature_id>/', ZawomonsCreatureGetView.as_view(), name='zawomons-creature-get'),
