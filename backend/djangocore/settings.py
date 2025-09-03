@@ -139,11 +139,11 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     'https://zawosite.vercel.app',
-    'https://www.zawodev.online/',
+    'https://www.zawodev.online',
     FRONTEND_URL,
     
-    'localhost',
-    '127.0.0.1',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
 ]
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = False
