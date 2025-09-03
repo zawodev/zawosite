@@ -33,11 +33,19 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!replace_me!')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
 ALLOWED_HOSTS = [
     'www.zawosite.vercel.app',
     'www.zawodev.online',
+    'www.' + FRONTEND_URL.replace('http://', '').replace('https://', ''),
+
+    'zawosite.vercel.app',
+    'zawodev.online',
+    FRONTEND_URL.replace('http://', '').replace('https://', ''),
+    
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
 ]
 
 
@@ -130,7 +138,12 @@ USE_TZ = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    'https://zawosite.vercel.app',
+    'https://www.zawodev.online/',
+    FRONTEND_URL,
+    
+    'localhost',
+    '127.0.0.1',
 ]
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = False
@@ -195,7 +208,6 @@ SIMPLE_JWT = {
 
 SITE_ID = 1
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 LOGIN_REDIRECT_URL = FRONTEND_URL
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
 SOCIALACCOUNT_LOGIN_REDIRECT_URL = FRONTEND_URL
