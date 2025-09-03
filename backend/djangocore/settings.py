@@ -36,6 +36,8 @@ DEBUG = False
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 ALLOWED_HOSTS = [
+    'zawosite-backend.onrender.com'
+    '.onrender.com',
     'www.zawosite.vercel.app',
     'www.zawodev.online',
     'www.' + FRONTEND_URL.replace('http://', '').replace('https://', ''),
@@ -48,6 +50,13 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://zawosite.vercel.app",
+    "https://www.zawodev.online",
+    "https://zawodev.online",
+    "https://zawosite-backend.onrender.com",
+    FRONTEND_URL,
+]
 
 # Application definition
 
