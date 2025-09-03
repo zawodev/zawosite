@@ -46,7 +46,7 @@ const games = ref([
   {
     id: 2,
     title: 'Cleaning Time!',
-    description: 'Gra zręcznościowa opowiadająca historię energicznego przedszkolaka, który ma ambicję posprzątać wszystkie zabawki w całym przedszkolu (sam), podczas gdy jego koledzy i koleżanki toczą własne boje w poszukiwaniu swych straconych chromosomów.',
+    description: 'Gra zręcznościowa opowiadająca historię energicznego przedszkolaka, który ma ambicję posprzątać wszystkie zabawki w całym przedszkolu (sam), podczas gdy jego koledzy i koleżanki toczą własne boje w poszukiwaniu swych utraconych chromosomów.',
     image: '/games/cleaning-time/thumbnail.jpg',
     tags: [
       { icon: UserIcon, text: 'Singleplayer' }
