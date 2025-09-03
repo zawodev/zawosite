@@ -9,3 +9,4 @@ drf-spectacular
 django-cors-headers
 djangorestframework-simplejwt
 dj-rest-auth[with_jwt]
+gunicorn
