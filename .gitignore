@@ -11,7 +11,7 @@ __pycache__/
 *.pyo
 pip-log.txt
 .Python
-build/
+/backend/build/
 dist/
 venv/
 env/

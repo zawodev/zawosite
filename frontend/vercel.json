@@ -1,8 +1,11 @@
 {
-  "rewrites": [],
   "headers": [
     {
       "source": "/games/:gameName/Build/:file.js",
+      "headers": [{ "key": "Content-Type", "value": "application/javascript" }]
+    },
+    {
+      "source": "/games/:gameName/Build/:file.framework.js",
       "headers": [{ "key": "Content-Type", "value": "application/javascript" }]
     },
     {
