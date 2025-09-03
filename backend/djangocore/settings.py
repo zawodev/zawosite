@@ -36,7 +36,7 @@ DEBUG = True
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 ALLOWED_HOSTS = [
-    'zawosite-backend.onrender.com'
+    'zawosite-backend.onrender.com',
     '.onrender.com',
     'www.zawosite.vercel.app',
     'www.zawodev.online',
