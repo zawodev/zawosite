@@ -1,0 +1,17 @@
+{
+  "rewrites": [],
+  "headers": [
+    {
+      "source": "/games/:gameName/Build/:file.js",
+      "headers": [{ "key": "Content-Type", "value": "application/javascript" }]
+    },
+    {
+      "source": "/games/:gameName/Build/:file.data",
+      "headers": [{ "key": "Content-Type", "value": "application/octet-stream" }]
+    },
+    {
+      "source": "/games/:gameName/Build/:file.wasm",
+      "headers": [{ "key": "Content-Type", "value": "application/wasm" }]
+    }
+  ]
+}

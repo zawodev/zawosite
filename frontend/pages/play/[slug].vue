@@ -63,7 +63,7 @@ console.log('Current slug:', slug.value)
 // Lista dostępnych gier
 const availableGames = [
   'zawomons',
-  'logic-game'
+  'cleaning-time'
 ]
 const gameExists = computed(() => availableGames.includes(slug.value))
 
@@ -98,7 +98,7 @@ onMounted(() => {
 // Tytuły gier
 const gameTitle = computed(() => {
   if (slug.value === 'zawomons') return 'Zawomons'
-  if (slug.value === 'logic-game') return 'Gra logiczna'
+  if (slug.value === 'cleaning-time') return 'Cleaning Time!'
   return 'Gra'
 })
 

@@ -13,7 +13,7 @@
         </div>
         <div class="p-6">
           <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">{{ game.title }}</h2>
-          <p class="text-gray-600 dark:text-gray-300 mb-4">{{ game.description }}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 mb-4">{{ game.description }}</p>
           <div class="flex flex-wrap gap-2">
             <span v-for="tag in game.tags" :key="tag.text" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
               <component :is="tag.icon" class="w-4 h-4 mr-1" />
@@ -45,13 +45,13 @@ const games = ref([
   },
   {
     id: 2,
-    title: 'Gra logiczna',
-    description: 'Rozwiązuj zagadki i łamigłówki w tej grze logicznej!',
-    image: '',
+    title: 'Cleaning Time!',
+    description: 'Gra zręcznościowa opowiadająca historię energicznego przedszkolaka, który ma ambicję posprzątać wszystkie zabawki w całym przedszkolu (sam), podczas gdy jego koledzy i koleżanki toczą własne boje w poszukiwaniu swych straconych chromosomów.',
+    image: '/games/cleaning-time/thumbnail.jpg',
     tags: [
       { icon: UserIcon, text: 'Singleplayer' }
     ],
-    url: '/play/logic-game'
+    url: '/play/cleaning-time'
   }
 ])
 </script>
