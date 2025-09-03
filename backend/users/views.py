@@ -132,6 +132,7 @@ class CustomRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
     
     def post(self, request, *args, **kwargs):
+        logger.info(f"Registration attempt with data: {request.data}")
         serializer = CustomRegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save(request)

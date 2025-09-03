@@ -31,7 +31,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!replace_me!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
@@ -58,7 +58,7 @@ CSRF_TRUSTED_ORIGINS = [
     FRONTEND_URL,
 ]
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+#SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
 
@@ -274,4 +274,26 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 
 REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'users.serializers.CustomLoginSerializer',
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'users': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
