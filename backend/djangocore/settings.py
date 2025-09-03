@@ -26,12 +26,17 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dugha)poli4r^vy(+a+!gf#tfjdj^ew2s!aiqw6r*m=i^2=9da'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!replace_me!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'www.zawosite.vercel.app',
+    'www.zawodev.online',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition

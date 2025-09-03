@@ -20,9 +20,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from users.views import SocialLoginCallbackView, CustomRegisterView, CustomLoginView
+from .views import health_check
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('health/', health_check, name='health_check'),
     path('api/v1/auth/login/', CustomLoginView.as_view(), name='custom_login'),
     path('api/v1/auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
     path('api/v1/accounts/', include('allauth.urls')),
