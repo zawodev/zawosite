@@ -34,8 +34,8 @@ import { UserGroupIcon, UserIcon } from '@heroicons/vue/24/solid'
 const games = ref([
   {
     id: 1,
-    title: 'Zawomons',
-    description: 'Przykładowa gra stworzona w Unity WebGL. Kliknij, aby zagrać!',
+    title: 'zawomons',
+    description: 'coś jak pokemony + heroes of might and magic 5 + shakes and fidget. Zbieraj, trenuj i walcz zawomonsami w turowych bitwach lokalnie i online.',
     image: '/games/zawomons/thumbnail.jpg',
     tags: [
       { icon: UserGroupIcon, text: 'Multiplayer' },
@@ -52,6 +52,16 @@ const games = ref([
       { icon: UserIcon, text: 'Singleplayer' }
     ],
     url: '/play/cleaning-time'
+  },
+  {
+    id: 3,
+    title: 'The Last Raccoon',
+    description: 'Ostatni ocalały szop w świecie pozbawionym brudu. Obroń elektryczny samochód jego wybawiciela, stawiaj wieżyczki i pilnuj by nie padły z głodu na brak prądu. Tower defense w brudnym klimacie zbyt czystych miast.',
+    image: '/games/the-last-raccoon/thumbnail.jpg',
+    tags: [
+      { icon: UserIcon, text: 'Singleplayer' }
+    ],
+    url: '/play/the-last-raccoon'
   }
 ])
 </script>
