@@ -10,3 +10,5 @@ django-cors-headers
 djangorestframework-simplejwt
 dj-rest-auth[with_jwt]
 gunicorn
+psycopg2-binary
+dj-database-url
