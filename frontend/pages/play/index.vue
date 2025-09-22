@@ -62,6 +62,16 @@ const games = ref([
       { icon: UserIcon, text: 'Singleplayer' }
     ],
     url: '/play/the-last-raccoon'
+  },
+  {
+    id: 4,
+    title: 'Ping Pong in SPACE!',
+    description: 'Prosta gra typu pong z kosmiczną atmosferą. Sterowanie: strzałki góra/dół lub W/S.',
+    image: '/games/ping-pong-in-space/thumbnail.jpg',
+    tags: [
+      { icon: UserIcon, text: 'Multiplayer' }
+    ],
+    url: '/play/ping-pong-in-space'
   }
 ])
 </script>

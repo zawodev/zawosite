@@ -64,7 +64,8 @@ console.log('Current slug:', slug.value)
 const availableGames = [
   'zawomons',
   'cleaning-time',
-  'the-last-raccoon'
+  'the-last-raccoon',
+  'ping-pong-in-space'
 ]
 const gameExists = computed(() => availableGames.includes(slug.value))
 
@@ -101,6 +102,7 @@ const gameTitle = computed(() => {
   if (slug.value === 'zawomons') return 'zawomons'
   if (slug.value === 'cleaning-time') return 'Cleaning Time!'
   if (slug.value === 'the-last-raccoon') return 'The Last Raccoon'
+  if (slug.value === 'ping-pong-in-space') return 'Ping Pong in SPACE!'
   return 'Gra'
 })
 
