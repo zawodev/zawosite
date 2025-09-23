@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'users',
     'drf_spectacular',
     'games',
+    'zawomons',
 
     'corsheaders',
 ]
