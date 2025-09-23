@@ -6,18 +6,20 @@ from .views import (ZawomonsPlayerDataGetView,
                    ZawomonsSpellLearnView, ZawomonsSpellCompleteView)
 
 urlpatterns = [
-    # Endpointy specyficzne dla gry Zawomons
-    path('zawomons/player-data-get/', ZawomonsPlayerDataGetView.as_view(), name='zawomons-player-data-get'),
-    path('zawomons/set-single-resource/', ZawomonsSetSingleResourceView.as_view(), name='zawomons-set-single-resource'),
+    # general endpoints
     path('zawomons/players/', ZawomonsPlayersListView.as_view(), name='zawomons-players-list'),
     path('zawomons/friends/', ZawomonsFriendsListView.as_view(), name='zawomons-friends-list'),
 
-    # Endpointy dla zarządzania stworkami
+    # player endpoints
+    path('zawomons/player-data-get/', ZawomonsPlayerDataGetView.as_view(), name='zawomons-player-data-get'),
+    path('zawomons/set-single-resource/', ZawomonsSetSingleResourceView.as_view(), name='zawomons-set-single-resource'),
+
+    # creature endpoints
     path('zawomons/creature-get/<int:creature_id>/', ZawomonsCreatureGetView.as_view(), name='zawomons-creature-get'),
     path('zawomons/creature-add/', ZawomonsCreatureAddView.as_view(), name='zawomons-creature-add'),
     path('zawomons/creature-set/', ZawomonsCreatureSetView.as_view(), name='zawomons-creature-set'),
 
-    # Endpointy dla zarządzania spellami
+    # spell endpoints
     path('zawomons/spell-learn/', ZawomonsSpellLearnView.as_view(), name='zawomons-spell-learn'),
     path('zawomons/spell-complete/', ZawomonsSpellCompleteView.as_view(), name='zawomons-spell-complete'),
 ]

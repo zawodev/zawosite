@@ -16,7 +16,7 @@ class Player(models.Model):
     experience = models.IntegerField(default=0)
 
     # flagi specjalne
-    can_claim_start_creature = models.BooleanField(default=True)
+    last_creature_claim_time = models.DateTimeField(null=True, blank=True)  # kiedy ostatnio odebrano darmowego stworka
 
     # metadane django
     last_played = models.DateTimeField(auto_now=True)
@@ -36,7 +36,7 @@ class Creature(models.Model):
     secondary_element = models.CharField(max_length=20, null=True, blank=True)
 
     # color - przechowamy jako hex string
-    color = models.CharField(max_length=7, default="#FFFFFF")  # format: #RRGGBB
+    color = models.CharField(max_length=7, default="#FF00DD")  # format: #RRGGBB
 
     # statystyki stworka
     experience = models.IntegerField(default=0)
@@ -84,7 +84,7 @@ class Spell(models.Model):
         return f"{self.name} (ID: {self.spell_id})"
 
 class City(models.Model):
-    """Model dla miast w grze Zawomons"""
+    """Model dla miast w grze zawomons"""
 
     # pozycja na mapie
     posX = models.FloatField()
