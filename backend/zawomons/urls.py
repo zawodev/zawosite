@@ -14,67 +14,67 @@ from .views import (ZawomonsPlayersListView,
 urlpatterns = [
     # --- 1. player endpoints
     # ✅ GET  /zawomons/players/ - global player list
-    path('zawomons/players/', ZawomonsPlayersListView.as_view(), name='zawomons-players-list'),
+    path('players/', ZawomonsPlayersListView.as_view(), name='zawomons-players-list'),
     
     # ✅ GET  /zawomons/players/me/ - pobiera wszystkie dane gracza
-    path('zawomons/players/me/', ZawomonsPlayerMeView.as_view(), name='zawomons-players-me'),
+    path('players/me/', ZawomonsPlayerMeView.as_view(), name='zawomons-players-me'),
     
     # ✅ GET  /zawomons/players/me/friends/ - friend list
-    path('zawomons/players/me/friends/', ZawomonsPlayerMeFriendsView.as_view(), name='zawomons-players-me-friends'),
+    path('players/me/friends/', ZawomonsPlayerMeFriendsView.as_view(), name='zawomons-players-me-friends'),
     
     # ✅ GET  /zawomons/players/<id>/ - pobranie danych innego gracza
-    path('zawomons/players/<int:player_id>/', ZawomonsPlayerDetailView.as_view(), name='zawomons-players-detail'),
+    path('players/<int:player_id>/', ZawomonsPlayerDetailView.as_view(), name='zawomons-players-detail'),
     
     # ✅ GET  /zawomons/players/<id>/creatures/ - lista stworków innego gracza (do podglądu profilu)
-    path('zawomons/players/<int:player_id>/creatures/', ZawomonsPlayerCreaturesListView.as_view(), name='zawomons-players-creatures'),
+    path('players/<int:player_id>/creatures/', ZawomonsPlayerCreaturesListView.as_view(), name='zawomons-players-creatures'),
     
     # - b) me player creature endpoints
     # ✅ GET  /zawomons/players/me/creatures/ - lista stworków gracza
-    path('zawomons/players/me/creatures/', ZawomonsPlayerMeCreaturesListView.as_view(), name='zawomons-players-me-creatures'),
+    path('players/me/creatures/', ZawomonsPlayerMeCreaturesListView.as_view(), name='zawomons-players-me-creatures'),
     
     # ✅ GET/PUT  /zawomons/players/me/creatures/<id>/ - pobiera dane danego stworka gracza / aktualizuje stworka
-    path('zawomons/players/me/creatures/<int:creature_id>/', ZawomonsPlayerMeCreatureDetailView.as_view(), name='zawomons-players-me-creatures-detail'),
+    path('players/me/creatures/<int:creature_id>/', ZawomonsPlayerMeCreatureDetailView.as_view(), name='zawomons-players-me-creatures-detail'),
     
     # ✅ GET  /zawomons/players/me/creatures/<id>/progress/ - pobiera tylko progress taska (jeśli stworek należy do gracza)
-    path('zawomons/players/me/creatures/<int:creature_id>/progress/', ZawomonsPlayerMeCreatureProgressView.as_view(), name='zawomons-players-me-creatures-progress'),
+    path('players/me/creatures/<int:creature_id>/progress/', ZawomonsPlayerMeCreatureProgressView.as_view(), name='zawomons-players-me-creatures-progress'),
     
     # ✅ POST /zawomons/players/me/creatures/claim/ - robi próbę dodania darmowego stworka jeśli minęły 4h od ostatniego last_creature_claim_time
-    path('zawomons/players/me/creatures/claim/', ZawomonsPlayerMeCreatureClaimView.as_view(), name='zawomons-players-me-creatures-claim'),
+    path('players/me/creatures/claim/', ZawomonsPlayerMeCreatureClaimView.as_view(), name='zawomons-players-me-creatures-claim'),
     
     # ✅ POST /zawomons/players/me/creatures/<id>/spells/learn/ - zaczyna naukę spella
-    path('zawomons/players/me/creatures/<int:creature_id>/spells/learn/', ZawomonsPlayerMeCreatureSpellLearnView.as_view(), name='zawomons-players-me-creatures-spells-learn'),
+    path('players/me/creatures/<int:creature_id>/spells/learn/', ZawomonsPlayerMeCreatureSpellLearnView.as_view(), name='zawomons-players-me-creatures-spells-learn'),
     
     # ✅ POST /zawomons/players/me/creatures/<id>/travel/start/ - zaczyna podróż
-    path('zawomons/players/me/creatures/<int:creature_id>/travel/start/', ZawomonsPlayerMeCreatureTravelStartView.as_view(), name='zawomons-players-me-creatures-travel-start'),
+    path('players/me/creatures/<int:creature_id>/travel/start/', ZawomonsPlayerMeCreatureTravelStartView.as_view(), name='zawomons-players-me-creatures-travel-start'),
     
     # ✅ GET  /zawomons/players/me/tasks/ - all ongoing tasks for the player (all creatures + all cities)
-    path('zawomons/players/me/tasks/', ZawomonsPlayerMeTasksView.as_view(), name='zawomons-players-me-tasks'),
+    path('players/me/tasks/', ZawomonsPlayerMeTasksView.as_view(), name='zawomons-players-me-tasks'),
     
     # - c) me player city endpoints
     # ✅ GET  /zawomons/players/me/cities/ - lista miast gracza
-    path('zawomons/players/me/cities/', ZawomonsPlayerMeCitiesListView.as_view(), name='zawomons-players-me-cities'),
+    path('players/me/cities/', ZawomonsPlayerMeCitiesListView.as_view(), name='zawomons-players-me-cities'),
     
     # ✅ GET  /zawomons/players/me/cities/<id>/ - pobiera dane danego miasta gracza
-    path('zawomons/players/me/cities/<int:city_id>/', ZawomonsPlayerMeCityDetailView.as_view(), name='zawomons-players-me-cities-detail'),
+    path('players/me/cities/<int:city_id>/', ZawomonsPlayerMeCityDetailView.as_view(), name='zawomons-players-me-cities-detail'),
     
     # ✅ POST /zawomons/players/me/cities/build/ - buduje nowe miasto (jeśli gracz ma wystarczająco dużo zasobów)
-    path('zawomons/players/me/cities/build/', ZawomonsPlayerMeCityBuildView.as_view(), name='zawomons-players-me-cities-build'),
+    path('players/me/cities/build/', ZawomonsPlayerMeCityBuildView.as_view(), name='zawomons-players-me-cities-build'),
     
     # --- 2. public endpoints (read-only for all)
     # ✅ GET  /zawomons/creatures/ - lista wszystkich stworków (dzikich i należących do graczy)
-    path('zawomons/creatures/', ZawomonsPublicCreaturesListView.as_view(), name='zawomons-creatures-list'),
+    path('creatures/', ZawomonsPublicCreaturesListView.as_view(), name='zawomons-creatures-list'),
     
     # ✅ GET  /zawomons/creatures/<id>/ - pobiera dane danego stworka (dowolnego nie tylko danego gracza)
-    path('zawomons/creatures/<int:creature_id>/', ZawomonsPublicCreatureDetailView.as_view(), name='zawomons-creatures-detail'),
+    path('creatures/<int:creature_id>/', ZawomonsPublicCreatureDetailView.as_view(), name='zawomons-creatures-detail'),
     
     # ✅ GET  /zawomons/cities/ - lista miast (wszystkich)
-    path('zawomons/cities/', ZawomonsPublicCitiesListView.as_view(), name='zawomons-cities-list'),
+    path('cities/', ZawomonsPublicCitiesListView.as_view(), name='zawomons-cities-list'),
     
     # ✅ GET  /zawomons/cities/<id>/ - pobiera dane danego miasta (dowolnego nie tylko danego gracza)
-    path('zawomons/cities/<int:city_id>/', ZawomonsPublicCityDetailView.as_view(), name='zawomons-cities-detail'),
+    path('cities/<int:city_id>/', ZawomonsPublicCityDetailView.as_view(), name='zawomons-cities-detail'),
     
     # ✅ GET  /zawomons/spells/ - lista wszystkich spelli w grze (statyczna)
-    path('zawomons/spells/', ZawomonsPublicSpellsListView.as_view(), name='zawomons-spells-list'),
+    path('spells/', ZawomonsPublicSpellsListView.as_view(), name='zawomons-spells-list'),
 ]
 
 

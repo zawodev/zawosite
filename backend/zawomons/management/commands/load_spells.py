@@ -8,9 +8,9 @@ class Command(BaseCommand):
         SPELLS_DATA = [
             {
                 'spell_id': 0,
-                'name': 'Fireball2',
-                'description': 'Launches a ball of fire that deals damage to enemies.',
-                'spell_img': 'https://example.com/spells/fireball.png'
+                'name': 'Basic Attack',
+                'description': 'A simple attack that deals minor damage.',
+                'spell_img': 'https://example.com/spells/basic_attack.png'
             },
             {
                 'spell_id': 1,
@@ -65,6 +65,12 @@ class Command(BaseCommand):
                 'name': 'Time Stop',
                 'description': 'Freezes time for a brief moment.',
                 'spell_img': 'https://example.com/spells/time_stop.png'
+            },
+            {
+                'spell_id': 10,
+                'name': 'Fireball',
+                'description': 'Launches a ball of fire that deals damage to enemies.',
+                'spell_img': 'https://example.com/spells/fireball.png'
             },
         ]
 

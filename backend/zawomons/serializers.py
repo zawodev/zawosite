@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Player, Creature, Spell, City, Battle
+from .models import Player, Creature, Spell, City, CreatureSpell
 
 class SpellSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,6 +9,7 @@ class SpellSerializer(serializers.ModelSerializer):
 class CreatureSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source='owner.user.username', read_only=True)
     current_spell_name = serializers.SerializerMethodField()
+    spells = serializers.SerializerMethodField()
 
     def get_current_spell_name(self, obj):
         if obj.learning_spell_id is not None:
@@ -19,6 +20,28 @@ class CreatureSerializer(serializers.ModelSerializer):
                 return None
         return None
 
+    def get_spells(self, obj):
+        """Zwraca listę poznanych spelli stworka w formacie oczekiwanym przez Unity"""
+        spells_data = []
+        for creature_spell in obj.known_spells.all():
+            spells_data.append({
+                'spell_id': creature_spell.spell.spell_id,
+                'start_time': creature_spell.learned_at.isoformat(),
+                'end_time': creature_spell.learned_at.isoformat(),  # Dla poznanych spelli start_time = end_time
+                'is_learned': True
+            })
+        
+        # Dodaj aktualnie uczący się spell (jeśli istnieje)
+        if obj.learning_spell_id and not obj.learning_is_complete:
+            spells_data.append({
+                'spell_id': obj.learning_spell_id,
+                'start_time': obj.learning_start_time.isoformat() if obj.learning_start_time else None,
+                'end_time': obj.learning_end_time.isoformat() if obj.learning_end_time else None,
+                'is_learned': False
+            })
+        
+        return spells_data
+
     class Meta:
         model = Creature
         fields = [
@@ -28,7 +51,7 @@ class CreatureSerializer(serializers.ModelSerializer):
             'travel_from_x', 'travel_from_y', 'travel_to_x', 'travel_to_y',
             'travel_start_time', 'travel_end_time', 'travel_is_complete',
             'learning_spell_id', 'learning_start_time', 'learning_end_time',
-            'learning_is_complete', 'current_spell_name'
+            'learning_is_complete', 'current_spell_name', 'spells'
         ]
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -48,7 +71,7 @@ class PlayerSerializer(serializers.ModelSerializer):
         # Można odebrać co 4 godziny
         from django.utils import timezone
         from datetime import timedelta
-        return timezone.now() > obj.last_creature_claim_time + timedelta(hours=4)
+        return obj.last_creature_claim_time is None or timezone.now() >= obj.last_creature_claim_time + timedelta(hours=4)
 
     class Meta:
         model = Player
@@ -57,19 +80,6 @@ class PlayerSerializer(serializers.ModelSerializer):
             'can_claim_creature', 'creatures', 'cities', 'last_played', 'created_at'
         ]
         read_only_fields = ['username', 'last_played', 'created_at', 'can_claim_creature']
-
-class UpdateSingleResourceSerializer(serializers.Serializer):
-    """Serializer dla aktualizacji pojedynczego zasobu"""
-    RESOURCE_CHOICES = [
-        ('gold', 'Gold'),
-        ('wood', 'Wood'),
-        ('stone', 'Stone'),
-        ('gems', 'Gems'),
-        ('experience', 'Experience'),
-    ]
-
-    resource_type = serializers.ChoiceField(choices=RESOURCE_CHOICES)
-    value = serializers.IntegerField(min_value=0)
 
 class PlayerListSerializer(serializers.ModelSerializer):
     """Uproszczony serializer dla listy graczy"""
@@ -95,27 +105,6 @@ class PlayerListSerializer(serializers.ModelSerializer):
         model = Player
         fields = ['username', 'experience', 'creature_count', 'city_count', 'is_online']
 
-# Serializers dla operacji na creatures
-class CreatureCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Creature
-        fields = [
-            'name', 'main_element', 'secondary_element', 'color',
-            'experience', 'max_hp', 'current_hp', 'max_energy', 'current_energy',
-            'damage', 'initiative', 'posX', 'posY'
-        ]
-
-class CreatureUpdateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = Creature
-        fields = [
-            'id', 'name', 'main_element', 'secondary_element', 'color',
-            'experience', 'max_hp', 'current_hp', 'max_energy', 'current_energy',
-            'damage', 'initiative', 'posX', 'posY'
-        ]
-
 # Serializers dla miast
 class CitySerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source='owner.user.username', read_only=True)
@@ -123,31 +112,3 @@ class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
         fields = ['id', 'name', 'description', 'posX', 'posY', 'owner_username']
-
-class CityCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = City
-        fields = ['name', 'description', 'posX', 'posY']
-
-# Serializers dla bitew
-class BattleSerializer(serializers.ModelSerializer):
-    player1_username = serializers.CharField(source='player1.user.username', read_only=True)
-    player2_username = serializers.CharField(source='player2.user.username', read_only=True)
-
-    class Meta:
-        model = Battle
-        fields = ['id', 'player1_username', 'player2_username', 'result', 'battle_data', 'created_at']
-
-# Serializers dla operacji na spellach
-class SpellLearnSerializer(serializers.ModelSerializer):
-    """Serializer do rozpoczęcia nauki spella"""
-    creature_id = serializers.IntegerField()
-
-    class Meta:
-        model = Creature
-        fields = ['creature_id', 'learning_spell_id', 'learning_start_time', 'learning_end_time']
-
-class SpellCompleteSerializer(serializers.Serializer):
-    """Serializer do oznaczenia spella jako nauczonego"""
-    creature_id = serializers.IntegerField()
-    spell_id = serializers.IntegerField()

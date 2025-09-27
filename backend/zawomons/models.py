@@ -83,6 +83,18 @@ class Spell(models.Model):
     def __str__(self):
         return f"{self.name} (ID: {self.spell_id})"
 
+class CreatureSpell(models.Model):
+    """Model dla relacji many-to-many między Creature a Spell - poznane spelle"""
+    creature = models.ForeignKey(Creature, on_delete=models.CASCADE, related_name='known_spells')
+    spell = models.ForeignKey(Spell, on_delete=models.CASCADE)
+    learned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('creature', 'spell')  # jeden stworek nie może mieć tego samego spella dwa razy
+
+    def __str__(self):
+        return f"{self.creature.name} knows {self.spell.name}"
+
 class City(models.Model):
     """Model dla miast w grze zawomons"""
 
