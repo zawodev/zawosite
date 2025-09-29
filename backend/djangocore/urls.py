@@ -31,7 +31,6 @@ urlpatterns = [
 
     # my views
     path('api/v1/users/', include('users.urls')),
-    path('api/v1/games/', include('games.urls')),
     path('api/v1/zawomons/', include('zawomons.urls')),
     
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

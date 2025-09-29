@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useAuthStore } from '~/stores/auth'
+import { getGameBySlug, gameExists as isGameExists } from '~/config/games'
 
 console.log('Play page loading...')
 
@@ -60,14 +61,9 @@ const iframeVisible = ref(true)
 
 console.log('Current slug:', slug.value)
 
-// Lista dostępnych gier
-const availableGames = [
-  'zawomons',
-  'cleaning-time',
-  'the-last-raccoon',
-  'ping-pong-in-space'
-]
-const gameExists = computed(() => availableGames.includes(slug.value))
+// Sprawdzenie czy gra istnieje
+const gameExists = computed(() => isGameExists(slug.value))
+const currentGame = computed(() => getGameBySlug(slug.value))
 
 // Ścieżka do gry
 const iframeSrc = computed(() => `/games/${slug.value}/index.html`)
@@ -97,13 +93,9 @@ onMounted(() => {
   }
 })
 
-// Tytuły gier
+// Tytuł gry z centralnej konfiguracji
 const gameTitle = computed(() => {
-  if (slug.value === 'zawomons') return 'zawomons'
-  if (slug.value === 'cleaning-time') return 'Cleaning Time!'
-  if (slug.value === 'the-last-raccoon') return 'The Last Raccoon'
-  if (slug.value === 'ping-pong-in-space') return 'Ping Pong in SPACE!'
-  return 'Gra'
+  return currentGame.value?.title || 'Gra'
 })
 
 function onLoad() {

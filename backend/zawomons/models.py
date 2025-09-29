@@ -141,3 +141,9 @@ class Battle(models.Model):
 
     def __str__(self):
         return f"Battle: {self.player1.user.username} vs {self.player2.user.username} - {self.result}"
+
+### IN FUTURE:
+# - add biomes data
+# - add maps data
+# - add worlds data?
+# - add items? for ekwipunek
