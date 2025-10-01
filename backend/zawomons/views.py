@@ -259,6 +259,13 @@ class ZawomonsPlayerMeCreatureClaimView(APIView):
                 # Jeśli Basic Attack nie istnieje, zaloguj błąd ale nie przerywaj tworzenia stworka
                 pass
 
+            # chwilowo dla testu ucz również id 1
+            try:
+                spell_1 = Spell.objects.get(spell_id=1)
+                CreatureSpell.objects.create(creature=creature, spell=spell_1)
+            except Spell.DoesNotExist:
+                pass
+
             # Zaktualizuj czas ostatniego odbioru stworka
             player.last_creature_claim_time = timezone.now()
             player.save()
