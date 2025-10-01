@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import (ZawomonsPlayersListView,
                    ZawomonsPlayerMeView, ZawomonsPlayerMeFriendsView,
                    ZawomonsPlayerDetailView, ZawomonsPlayerMeCreaturesListView,
@@ -10,6 +10,7 @@ from .views import (ZawomonsPlayersListView,
                    ZawomonsPlayerMeCityBuildView, ZawomonsPublicCreaturesListView,
                    ZawomonsPublicCreatureDetailView, ZawomonsPublicCitiesListView,
                    ZawomonsPublicCityDetailView, ZawomonsPublicSpellsListView)
+from .battle_urls import battle_urlpatterns
 
 urlpatterns = [
     # --- 1. player endpoints
@@ -75,7 +76,9 @@ urlpatterns = [
     
     # ✅ GET  /zawomons/spells/ - lista wszystkich spelli w grze (statyczna)
     path('spells/', ZawomonsPublicSpellsListView.as_view(), name='zawomons-spells-list'),
-]
+    
+    # Battle endpoints
+] + battle_urlpatterns
 
 
 # --- 1. player endpoints

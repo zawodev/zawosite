@@ -221,17 +221,17 @@ class ZawomonsPlayerMeCreatureClaimView(APIView):
 
             # Backend generuje stworka z losowymi statystykami (autorytatywnie)
             import random
-            elements = ['fire', 'water', 'earth', 'air', 'light', 'dark']
+            elements = ['fire', 'water', 'ice', 'none']
             main_element = random.choice(elements)
             
             # Generuj losowy kolor
             color = f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
             
             # Losowe statystyki bazowe (backend decyduje)
-            base_hp = random.randint(80, 120)
-            base_energy = random.randint(40, 60)
-            base_damage = random.randint(20, 30)
-            base_initiative = random.randint(8, 15)
+            base_hp = random.randint(1, 4)
+            base_energy = random.randint(1, 6)
+            base_damage = random.randint(1, 2)
+            base_initiative = random.randint(1, 5)
             
             # Stwórz stworka
             creature = Creature.objects.create(

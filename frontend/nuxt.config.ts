@@ -32,8 +32,8 @@ export default defineNuxtConfig({
         head: {
             title: 'zawosite',
             link : [
-                { rel: 'icon', type: 'image/x-icon', href: '/favicon-krecik.ico' },
-                //{ rel: 'icon', type: 'image/png', href: '/myicon.png' },
+                //{ rel: 'icon', type: 'image/x-icon', href: '/favicon-v1.ico' },
+                { rel: 'icon', type: 'image/png', href: '/favicon-v2.png' },
             ],
             meta: [
                 { charset: 'utf-8' },

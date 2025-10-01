@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'zawomons',
 
     'corsheaders',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -118,6 +119,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'djangocore.wsgi.application'
+ASGI_APPLICATION = 'djangocore.asgi.application'
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        },
+    },
+}
 
 
 # Database

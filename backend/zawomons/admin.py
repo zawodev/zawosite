@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Player, Creature, Spell, City, Battle
+from .models import Player, Creature, Spell, City, Battle, BattleParticipant, BattleAction, GameInvitation
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
@@ -26,6 +26,26 @@ class CityAdmin(admin.ModelAdmin):
 
 @admin.register(Battle)
 class BattleAdmin(admin.ModelAdmin):
-    list_display = ('player1', 'player2', 'result', 'created_at')
-    list_filter = ('result', 'created_at')
+    list_display = ('id', 'player1', 'player2', 'battle_type', 'phase', 'winner', 'created_at')
+    list_filter = ('battle_type', 'phase', 'created_at')
     search_fields = ('player1__user__username', 'player2__user__username')
+    readonly_fields = ('id', 'created_at', 'started_at', 'finished_at')
+
+@admin.register(BattleParticipant)
+class BattleParticipantAdmin(admin.ModelAdmin):
+    list_display = ('creature', 'player', 'battle', 'team', 'current_hp', 'is_alive')
+    list_filter = ('team', 'battle__battle_type')
+    search_fields = ('creature__name', 'player__user__username')
+
+@admin.register(BattleAction)
+class BattleActionAdmin(admin.ModelAdmin):
+    list_display = ('battle', 'turn_number', 'action_order', 'action_type', 'caster', 'target')
+    list_filter = ('action_type', 'battle__battle_type')
+    search_fields = ('caster__creature__name', 'target__creature__name')
+
+@admin.register(GameInvitation)
+class GameInvitationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'sender', 'receiver', 'invitation_type', 'status', 'created_at', 'expires_at')
+    list_filter = ('invitation_type', 'status', 'created_at')
+    search_fields = ('sender__user__username', 'receiver__user__username')
+    readonly_fields = ('id', 'created_at', 'expires_at', 'responded_at')

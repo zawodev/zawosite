@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+import uuid
 
 class Player(models.Model):
     """Model przechowujący dane gracza w grze zawomons"""
@@ -116,31 +117,172 @@ class City(models.Model):
     def __str__(self):
         return f"{self.name} - {self.owner.user.username if self.owner else 'Neutral'}"
 
+### Battle Models for WebSocket battles
+
 class Battle(models.Model):
-    """Model dla bitew między graczami"""
-
-    # uczestnicy bitwy
-    player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='battles_as_player1')
-    player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='battles_as_player2')
-
-    # wynik bitwy
-    RESULT_CHOICES = [
-        ('player1_win', 'Player 1 Wins'),
-        ('player2_win', 'Player 2 Wins'),
-        ('draw', 'Draw'),
-        ('ongoing', 'Ongoing'),
+    """Model reprezentujący walkę między dwoma graczami"""
+    
+    BATTLE_TYPES = [
+        ('friendly', 'Friendly Match'),  # sparring - brak konsekwencji
+        ('ranked', 'Ranked Battle'),    # pełna walka - zmiana HP, exp
     ]
-    result = models.CharField(max_length=20, choices=RESULT_CHOICES, default='ongoing')
-
-    # szczegóły bitwy (można rozszerzyć)
-    battle_data = models.JSONField(null=True, blank=True)  # JSON z detalami bitwy
-
-    # metadane django
+    
+    BATTLE_PHASES = [
+        ('waiting', 'Waiting for players'),
+        ('selection', 'Move selection'),
+        ('combat', 'Combat execution'),
+        ('finished', 'Battle finished'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    battle_type = models.CharField(max_length=10, choices=BATTLE_TYPES, default='friendly')
+    phase = models.CharField(max_length=10, choices=BATTLE_PHASES, default='waiting')
+    
+    # gracze
+    player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='websocket_battles_as_player1')
+    player2 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='websocket_battles_as_player2', null=True, blank=True)
+    
+    # wynik
+    winner = models.ForeignKey('Player', on_delete=models.SET_NULL, null=True, blank=True, related_name='websocket_won_battles')
+    
+    current_turn = models.IntegerField(default=0)
+    
+    # metadata
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    
     def __str__(self):
-        return f"Battle: {self.player1.user.username} vs {self.player2.user.username} - {self.result}"
+        return f"Battle {self.id} - {self.player1} vs {self.player2 or 'waiting'}"
+
+
+class BattleParticipant(models.Model):
+    """Model reprezentujący uczestnika walki (creature w battle)"""
+    
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name='participants')
+    player = models.ForeignKey('Player', on_delete=models.CASCADE)
+    creature = models.ForeignKey('Creature', on_delete=models.CASCADE)
+    
+    # stan w walce
+    current_hp = models.IntegerField()
+    current_energy = models.IntegerField()
+    initiative_bonus = models.IntegerField(default=0)
+    
+    # wybory ruchu
+    selected_spell = models.ForeignKey('Spell', on_delete=models.SET_NULL, null=True, blank=True)
+    selected_target = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
+    has_confirmed_move = models.BooleanField(default=False)
+    
+    # pozycja w teamie (1 lub 2)
+    team = models.IntegerField()  # 1 = team A, 2 = team B
+    
+    def reset_move_selection(self):
+        """Reset wyboru ruchu na następną turę"""
+        self.selected_spell = None
+        self.selected_target = None
+        self.has_confirmed_move = False
+        self.save()
+    
+    @property
+    def is_alive(self):
+        return self.current_hp > 0
+    
+    @property
+    def total_initiative(self):
+        return self.creature.initiative + self.initiative_bonus
+    
+    def __str__(self):
+        return f"{self.creature.name} (Team {self.team}) - {self.current_hp}/{self.creature.max_hp}HP"
+
+
+class BattleAction(models.Model):
+    """Model przechowujący akcje wykonane w walce (do historii i animacji)"""
+    
+    ACTION_TYPES = [
+        ('spell_cast', 'Spell Cast'),
+        ('damage_dealt', 'Damage Dealt'),
+        ('heal_performed', 'Heal Performed'),
+        ('buff_applied', 'Buff Applied'),
+    ]
+    
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name='actions')
+    turn_number = models.IntegerField()
+    action_order = models.IntegerField()  # kolejność w turze
+    
+    action_type = models.CharField(max_length=20, choices=ACTION_TYPES)
+    caster = models.ForeignKey(BattleParticipant, on_delete=models.CASCADE, related_name='actions_performed')
+    target = models.ForeignKey(BattleParticipant, on_delete=models.CASCADE, related_name='actions_received', null=True, blank=True)
+    spell_used = models.ForeignKey('Spell', on_delete=models.CASCADE, null=True, blank=True)
+    
+    # efekt akcji
+    damage_amount = models.IntegerField(default=0)
+    heal_amount = models.IntegerField(default=0)
+    initiative_bonus = models.IntegerField(default=0)
+    damage_bonus = models.IntegerField(default=0)
+    
+    # stan po akcji
+    target_hp_after = models.IntegerField(null=True, blank=True)
+    target_alive_after = models.BooleanField(default=True)
+    
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"T{self.turn_number}.{self.action_order}: {self.caster.creature.name} -> {self.action_type}"
+
+class GameInvitation(models.Model):
+    """Model zaproszenia do gry"""
+    
+    INVITATION_TYPES = [
+        ('friendly', 'Friendly Battle'),
+        ('ranked', 'Ranked Battle'),
+    ]
+    
+    INVITATION_STATUS = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # gracze
+    sender = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='sent_invitations')
+    receiver = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='received_invitations')
+    
+    # typ zaproszenia
+    invitation_type = models.CharField(max_length=10, choices=INVITATION_TYPES, default='friendly')
+    status = models.CharField(max_length=10, choices=INVITATION_STATUS, default='pending')
+    
+    # creatures wybrane przez sender
+    sender_creatures = models.JSONField(default=list, help_text="Lista ID creatures wybranych przez wysyłającego")
+    
+    # metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()  # zaproszenia wygasają po 2 minutach
+    responded_at = models.DateTimeField(null=True, blank=True)
+    
+    # powiązana walka (gdy zaproszenie zostanie zaakceptowane)
+    battle = models.ForeignKey('Battle', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            # Zaproszenia wygasają po 2 minutach
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=2)
+        super().save(*args, **kwargs)
+    
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+    
+    def can_respond(self):
+        return self.status == 'pending' and not self.is_expired()
+    
+    def __str__(self):
+        return f"Invitation {self.id}: {self.sender.user.username} -> {self.receiver.user.username} ({self.status})"
 
 ### IN FUTURE:
 # - add biomes data
