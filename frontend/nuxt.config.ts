@@ -7,6 +7,7 @@ export default defineNuxtConfig({
         '@nuxtjs/color-mode',
         '@pinia/nuxt',
         '@vueuse/nuxt',
+        '@nuxt/icon',
     ],
     colorMode: {
         preference: 'system', // default theme
