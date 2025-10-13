@@ -48,3 +48,4 @@ docker-compose.yml.backup
 # os files
 .Trash-*
 /unity
+/backend/staticfiles
