@@ -32,7 +32,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!replace_me!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
@@ -74,7 +74,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
-    'dj_rest_auth.registration',
+    # 'dj_rest_auth.registration',  # wyłączone - używamy własnych serializers
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -82,10 +82,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'users',
     'drf_spectacular',
-    'games',
     'zawomons',
 
     'corsheaders',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -119,6 +119,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'djangocore.wsgi.application'
+ASGI_APPLICATION = 'djangocore.asgi.application'
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        },
+    },
+}
 
 
 # Database
@@ -183,7 +194,7 @@ SESSION_COOKIE_SECURE = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -215,14 +226,11 @@ LOGIN_REDIRECT_URL = FRONTEND_URL
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
 SOCIALACCOUNT_LOGIN_REDIRECT_URL = FRONTEND_URL
 
-ACCOUNT_SIGNUP_FIELDS = {
-    'username': {'required': True},
-    'password1': {'required': True},
-    'password2': {'required': True},
-}
-ACCOUNT_LOGIN_METHODS = {'username'}
+# config allauth - force tylko username bez email
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_AUTHENTICATION_METHOD = 'username'  # stary ale działa
+ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_EMAIL_REQUIRED = False
 
 MEDIA_URL = '/media/'

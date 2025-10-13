@@ -1,2 +1,2 @@
 # zawosite
-react + django website made by zawodev
+nuxt vue + python django website made by zawodev (games in c# unity)

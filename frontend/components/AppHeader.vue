@@ -4,8 +4,11 @@
       <div class="flex justify-between items-center h-16">
         <!-- Logo -->
         <div class="flex-shrink-0">
-          <NuxtLink to="/" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            zawosite
+          <NuxtLink to="/" class="flex items-center space-x-2">
+            <img src="/favicon-v2.png" alt="zawosite" class="h-8 w-8">
+            <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              zawosite
+            </span>
           </NuxtLink>
         </div>
 
@@ -31,11 +34,11 @@
           <!-- <ThemeToggle /> -->
           <!-- User Display -->
           <div v-if="authStore.isAuthenticated || authStore.isGuest" class="flex items-center space-x-3">
-            <NuxtLink :to="authStore.isGuest ? '/profile/guest' : `/profile/${authStore.user.username}`" class="flex items-center space-x-2 group">
+            <NuxtLink :to="authStore.isGuest ? '/profile/guest' : `/profile/${authStore.user?.username}`" class="flex items-center space-x-2 group">
               <img
                   v-if="authStore.user?.avatar_url"
                   :src="authStore.user.avatar_url"
-                  :alt="authStore.user.username"
+                  :alt="authStore.user?.username"
                   class="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm"
               >
               <div

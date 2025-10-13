@@ -12,6 +12,8 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.16",
     "@heroicons/vue": "^2.0.18",
+    "@iconify/vue": "^5.0.0",
+    "@nuxt/icon": "^2.0.0",
     "@nuxtjs/color-mode": "^3.5.2",
     "@nuxtjs/tailwindcss": "^6.8.4",
     "@pinia/nuxt": "^0.5.1",
@@ -19,6 +21,7 @@
     "@vueuse/nuxt": "^10.5.0",
     "nuxt": "^3.17.5",
     "pinia": "^2.1.7",
+    "simple-icons": "^15.16.1",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1",
     "vue-toastification": "^2.0.0-rc.5",

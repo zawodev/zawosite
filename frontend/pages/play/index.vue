@@ -28,52 +28,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { UserGroupIcon, UserIcon } from '@heroicons/vue/24/solid'
+import { computed } from 'vue'
+import { GAMES } from '~/config/games'
 
-const games = ref([
-  {
-    id: 1,
-    title: 'zawomons',
-    description: 'coś jak pokemony + heroes of might and magic 5 + shakes and fidget. Zbieraj, trenuj i walcz zawomonsami w turowych bitwach lokalnie i online.',
-    image: '/games/zawomons/thumbnail.jpg',
-    tags: [
-      { icon: UserGroupIcon, text: 'Multiplayer' },
-      { icon: UserIcon, text: 'Singleplayer' }
-    ],
-    url: '/play/zawomons'
-  },
-  {
-    id: 2,
-    title: 'Cleaning Time!',
-    description: 'Gra zręcznościowa opowiadająca historię energicznego przedszkolaka, który ma ambicję posprzątać wszystkie zabawki w całym przedszkolu (sam), podczas gdy jego koledzy i koleżanki toczą własne boje w poszukiwaniu swych utraconych chromosomów.',
-    image: '/games/cleaning-time/thumbnail.jpg',
-    tags: [
-      { icon: UserIcon, text: 'Singleplayer' }
-    ],
-    url: '/play/cleaning-time'
-  },
-  {
-    id: 3,
-    title: 'The Last Raccoon',
-    description: 'Ostatni ocalały szop w świecie pozbawionym brudu. Obroń elektryczny samochód jego wybawiciela, stawiaj wieżyczki i pilnuj by nie padły z głodu na brak prądu. Tower defense w brudnym klimacie zbyt czystych miast.',
-    image: '/games/the-last-raccoon/thumbnail.jpg',
-    tags: [
-      { icon: UserIcon, text: 'Singleplayer' }
-    ],
-    url: '/play/the-last-raccoon'
-  },
-  {
-    id: 4,
-    title: 'Ping Pong in SPACE!',
-    description: 'Prosta gra typu pong z kosmiczną atmosferą. Sterowanie: strzałki góra/dół lub W/S.',
-    image: '/games/ping-pong-in-space/thumbnail.jpg',
-    tags: [
-      { icon: UserIcon, text: 'Multiplayer' }
-    ],
-    url: '/play/ping-pong-in-space'
-  }
-])
+const games = computed(() => {
+  return GAMES.map(game => ({
+    ...game,
+    url: `/play/${game.slug}`
+  }))
+})
 </script>
 
 <style scoped>

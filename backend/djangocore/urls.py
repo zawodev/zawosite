@@ -28,17 +28,19 @@ urlpatterns = [
     path('api/v1/auth/login/', CustomLoginView.as_view(), name='custom_login'),
     path('api/v1/auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
     path('api/v1/accounts/', include('allauth.urls')),
+
+    # my views
     path('api/v1/users/', include('users.urls')),
-    path('api/v1/games/', include('games.urls')),
     path('api/v1/zawomons/', include('zawomons.urls')),
+    
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    # Możesz dodać kolejne endpointy API tutaj
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns += [
     path('api/v1/accounts/social/callback/', SocialLoginCallbackView.as_view(), name='social_callback'),
