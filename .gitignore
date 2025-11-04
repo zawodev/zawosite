@@ -27,6 +27,11 @@ htmlcov/
 /frontend/dist/       # Sometimes generated, good to ignore
 /frontend/coverage/   # Test coverage reports
 
+# phaser-games
+/phaser-games/**/node_modules/
+/phaser-games/**/dist/
+/phaser-games/**/.DS_Store
+
 # common - Node.js
 node_modules/
 npm-debug.log*

@@ -32,6 +32,7 @@ urlpatterns = [
     # my views
     path('api/v1/users/', include('users.urls')),
     path('api/v1/zawomons/', include('zawomons.urls')),
+    path('api/v1/zawomons-gt/', include('zawomons_gt.urls')),
     
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

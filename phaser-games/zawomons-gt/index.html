@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zawomons: Grand Tournament</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1920px;
+            aspect-ratio: 16/9;
+            background: #000;
+        }
+
+        #fullscreen-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        #fullscreen-button:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.05);
+        }
+
+        #fullscreen-button.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #game-container:-webkit-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #game-container:-moz-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #game-container:fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #game-container:-webkit-full-screen #game,
+        #game-container:-moz-full-screen #game,
+        #game-container:fullscreen #game {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+
+        /* Canvas inside fullscreen should scale properly */
+        #game-container:-webkit-full-screen canvas,
+        #game-container:-moz-full-screen canvas,
+        #game-container:fullscreen canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="player-info" style="position:absolute; left:12px; top:8px; z-index:1001; color:#fff; display:flex; align-items:center; gap:8px; font-family:Arial;">
+            <img id="player-avatar" src="" alt="avatar" style="width:36px;height:36px;border-radius:50%;display:none;" />
+            <span id="player-name">Guest</span>
+            <button id="edit-name" style="margin-left:8px;padding:4px 8px;border-radius:4px;border:none;background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;">Edit</button>
+        </div>
+        <button id="fullscreen-button">⛶ Fullscreen</button>
+        <div id="game"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+        let authToken = '';
+
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'AUTH_TOKEN') {
+                authToken = event.data.token || '';
+                // expose globally for scenes
+                window.authToken = authToken;
+                console.log('🔑 Phaser received token:', authToken ? authToken.substring(0, 20) + '... (length: ' + authToken.length + ')' : '❌ EMPTY TOKEN');
+                
+                if (window.phaserGame) {
+                    window.phaserGame.events.emit('authTokenReceived', authToken);
+                }
+            }
+        });
+
+        // Fullscreen on game container directly (not via parent)
+        document.getElementById('fullscreen-button').addEventListener('click', function() {
+            const container = document.getElementById('game-container');
+            
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.mozRequestFullScreen) {
+                    container.mozRequestFullScreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        });
+
+        // Edit name button - allow changing username without initial prompt
+        document.getElementById('edit-name').addEventListener('click', function() {
+            const newName = prompt('Enter display name:', window.username || 'Guest');
+            if (newName) {
+                window.username = newName;
+                updatePlayerInfo();
+            }
+        });
+
+        // Handle ESC key to exit fullscreen
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.fullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+
+        function updateFullscreenButton() {
+            const button = document.getElementById('fullscreen-button');
+            if (document.fullscreenElement) {
+                // Ukryj przycisk w fullscreen
+                button.classList.add('hidden');
+            } else {
+                // Pokaż przycisk poza fullscreen
+                button.classList.remove('hidden');
+                button.textContent = '⛶ Fullscreen';
+            }
+        }
+
+        // Update UI for player info
+        function updatePlayerInfo() {
+            const nameEl = document.getElementById('player-name');
+            const avatarEl = document.getElementById('player-avatar');
+            const username = window.username || 'Guest';
+            if (nameEl) nameEl.textContent = username;
+            const avatarUrl = window.avatar || '';
+            if (avatarEl) {
+                if (avatarUrl) {
+                    avatarEl.src = avatarUrl;
+                    avatarEl.style.display = 'inline-block';
+                } else {
+                    avatarEl.style.display = 'none';
+                }
+            }
+        }
+
+        // Expose update function to scenes
+        window.updatePlayerInfo = updatePlayerInfo;
+
+        // Initial update
+        setTimeout(() => {
+            try { updatePlayerInfo(); } catch(e){}
+        }, 1000);
+    </script>
+</body>
+</html>

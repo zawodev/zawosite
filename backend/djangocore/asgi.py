@@ -12,7 +12,8 @@ from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
-from zawomons.routing import websocket_urlpatterns
+from zawomons.routing import websocket_urlpatterns as zawomons_ws
+from zawomons_gt.routing import websocket_urlpatterns as zawomons_gt_ws
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangocore.settings')
 
@@ -21,7 +22,7 @@ application = ProtocolTypeRouter({
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                websocket_urlpatterns
+                zawomons_ws + zawomons_gt_ws
             )
         )
     ),

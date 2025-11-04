@@ -1,0 +1,9 @@
+{
+  "name": "phaser-games",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:all": "npm run build:zawomons-gt",
+    "build:zawomons-gt": "cd zawomons-gt && npm run deploy"
+  }
+}
