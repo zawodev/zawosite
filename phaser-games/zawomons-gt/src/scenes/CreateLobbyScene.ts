@@ -246,7 +246,7 @@ export default class CreateLobbyScene extends Phaser.Scene {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+                    ...(authToken && { 'Authorization': `Token ${authToken}` }),
                 },
                 body: JSON.stringify({
                     name: lobbyName,
