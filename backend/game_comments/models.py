@@ -9,7 +9,9 @@ class GameComment(models.Model):
     """Comment for a game"""
     game_slug = models.CharField(max_length=100, db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='game_comments')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     content = models.TextField(max_length=2000)
+    is_edited = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -17,6 +19,7 @@ class GameComment(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['game_slug', '-created_at']),
+            models.Index(fields=['parent']),
         ]
     
     def __str__(self):
@@ -33,6 +36,10 @@ class GameComment(models.Model):
     @property
     def karma(self):
         return self.upvotes_count - self.downvotes_count
+    
+    @property
+    def replies_count(self):
+        return self.replies.count()
 
 
 class CommentVote(models.Model):
