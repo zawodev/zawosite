@@ -26,11 +26,11 @@
 
 # games page
 1. 🔄 view all games
-2. ❌ search games
-3. ❌ filter games
-4. ❌ sort games
-5. ❌ view game details
-6. 🔄 play game
+2. ✅ search games
+3. ✅ filter games
+4. ✅ sort games
+5. ✅ view game details
+6. ✅ play game
     - ✅ load webgl game
     - ✅ load different type of game?
 
@@ -50,7 +50,7 @@
 2. ❌ leaderboards
 3. 🔄 dark mode
     - ❌ księżyc nakłada się
-4. ❌ game reviews and ratings
+4. ✅ game reviews and ratings
 5. ❌ analytics dashboard for admins
 
 # luźne notatki
