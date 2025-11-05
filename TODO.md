@@ -32,7 +32,7 @@
 5. ❌ view game details
 6. 🔄 play game
     - ✅ load webgl game
-    - ❌ load different type of game?
+    - ✅ load different type of game?
 
 # users page
 1. 🔄 view user profile
