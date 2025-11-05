@@ -1,11 +1,27 @@
 import Phaser from 'phaser';
+import { Theme, StyledUI } from '../styles/theme';
+
+type GameMode = 'classic_1v1' | 'tournament' | 'boss_fight';
+
+interface GameModeOption {
+    key: GameMode;
+    name: string;
+    description: string;
+    maxPlayers: number;
+    enabled: boolean;
+}
 
 export default class CreateLobbyScene extends Phaser.Scene {
     private lobbyNameInput: HTMLInputElement | null = null;
     private isPublic: boolean = true;
-    private maxPlayers: number = 2;
-    private roundDuration: number = 60;
-    private cardsPerTurn: number = 5;
+    private selectedGameMode: GameMode = 'classic_1v1';
+    private gameModeButtons: Map<GameMode, { button: Phaser.GameObjects.Rectangle; label: Phaser.GameObjects.Text; desc: Phaser.GameObjects.Text; badge?: Phaser.GameObjects.Text }> = new Map();
+
+    private readonly gameModes: GameModeOption[] = [
+        { key: 'classic_1v1', name: 'Classic 1v1', description: '2 players battle', maxPlayers: 2, enabled: true },
+        { key: 'tournament', name: 'Tournament', description: '4+ players bracket', maxPlayers: 4, enabled: false },
+        { key: 'boss_fight', name: 'Boss Battle', description: 'Co-op vs AI boss', maxPlayers: 4, enabled: false },
+    ];
 
     constructor() {
         super({ key: 'CreateLobbyScene' });
@@ -16,47 +32,32 @@ export default class CreateLobbyScene extends Phaser.Scene {
         const height = 1080;
         const centerX = width / 2;
 
-        // Background
+        // Background with gradient
         const graphics = this.add.graphics();
-        graphics.fillGradientStyle(0x667eea, 0x667eea, 0x764ba2, 0x764ba2, 1);
-        graphics.fillRect(0, 0, width, height);
+        StyledUI.createGradientBackground(graphics, width, height, 'background');
 
         // Title
-        const title = this.add.text(centerX, 100, 'Create Lobby', {
-            fontSize: '64px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6,
-        });
+        const title = this.add.text(centerX, 100, 'Create Lobby', Theme.text.title);
         title.setOrigin(0.5);
 
         // Back button
-        const backButton = this.createButton(150, 80, 'Back', 0x757575, 200, 50);
-        backButton.on('pointerdown', () => {
-            this.cleanupInputs();
-            this.scene.start('LobbyListScene');
-        });
+        StyledUI.createStyledButton(
+            this, 150, 80, 'Back', 'secondary', 200, 50,
+            () => {
+                this.cleanupInputs();
+                this.scene.start('LobbyListScene');
+            }
+        );
 
         // Lobby name input
-        this.add.text(centerX - 300, 250, 'Lobby Name:', {
-            fontSize: '28px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-        });
-
-        this.createInputField(centerX + 50, 250, 400, 'My Awesome Lobby');
+        this.add.text(centerX - 300, 300, 'Lobby Name:', Theme.text.body);
+        this.createInputField(centerX + 50, 300, 400, 'My Awesome Lobby');
 
         // Public/Private toggle
-        this.add.text(centerX - 300, 350, 'Lobby Type:', {
-            fontSize: '28px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-        });
+        this.add.text(centerX - 300, 400, 'Lobby Type:', Theme.text.body);
 
-        const publicButton = this.createToggleButton(centerX - 50, 350, 'Public', true);
-        const privateButton = this.createToggleButton(centerX + 150, 350, 'Private', false);
+        const publicButton = this.createToggleButton(centerX - 50, 400, 'Public', true);
+        const privateButton = this.createToggleButton(centerX + 150, 400, 'Private', false);
 
         publicButton.on('pointerdown', () => {
             this.isPublic = true;
@@ -68,32 +69,15 @@ export default class CreateLobbyScene extends Phaser.Scene {
             this.updateToggleButtons(privateButton, publicButton);
         });
 
-        // Settings
-        this.add.text(centerX - 600, 500, 'Game Settings', {
-            fontSize: '36px',
-            fontFamily: 'Arial',
-            color: '#ffeb3b',
-            fontStyle: 'bold',
-        });
-
-        // Max players
-        this.createSettingSlider(centerX - 600, 600, 'Max Players:', 2, 8, 2, (value) => {
-            this.maxPlayers = value;
-        });
-
-        // Round duration
-        this.createSettingSlider(centerX - 600, 700, 'Round Duration (s):', 30, 300, 60, (value) => {
-            this.roundDuration = value;
-        });
-
-        // Cards per turn
-        this.createSettingSlider(centerX - 600, 800, 'Cards per Turn:', 1, 10, 5, (value) => {
-            this.cardsPerTurn = value;
-        });
+        // Game mode selection
+        this.add.text(centerX - 300, 500, 'Game Mode:', Theme.text.body);
+        this.createGameModeSelector(centerX, 580);
 
         // Create button
-        const createButton = this.createButton(centerX, 950, 'Create Lobby', 0x4CAF50, 400, 80);
-        createButton.on('pointerdown', () => this.createLobby());
+        StyledUI.createStyledButton(
+            this, centerX, 800, 'Create Lobby', 'primary', 400, 80,
+            () => this.createLobby()
+        );
     }
 
     createInputField(x: number, y: number, width: number, placeholder: string) {
@@ -105,104 +89,156 @@ export default class CreateLobbyScene extends Phaser.Scene {
         input.style.height = '40px';
         input.style.fontSize = '20px';
         input.style.padding = '8px';
-        input.style.border = '2px solid #4CAF50';
-        input.style.borderRadius = '4px';
+        input.style.border = `2px solid ${Theme.colors.primary}`;
+        input.style.borderRadius = '8px';
         input.style.backgroundColor = '#ffffff';
         input.style.color = '#000000';
 
-        // Use Phaser's DOM Element system so it scales with the game
         this.add.dom(x, y, input);
         this.lobbyNameInput = input;
-    }    createToggleButton(x: number, y: number, text: string, active: boolean) {
-        const button = this.add.rectangle(x, y, 180, 50, active ? 0x4CAF50 : 0x757575);
-        const label = this.add.text(x, y, text, {
-            fontSize: '24px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-        });
+    }
+
+    createToggleButton(x: number, y: number, text: string, active: boolean) {
+        const colorHex = active ? Theme.colors.primary : Theme.colors.surface;
+        const colorNum = parseInt(colorHex.replace('#', ''), 16);
+        
+        const button = this.add.rectangle(x, y, 180, 50, colorNum);
+        const label = this.add.text(x, y, text, Theme.text.body);
         label.setOrigin(0.5);
 
         button.setInteractive({ useHandCursor: true });
         button.setData('active', active);
-        button.setData('label', label);
 
         return button;
     }
 
     updateToggleButtons(activeButton: Phaser.GameObjects.Rectangle, inactiveButton: Phaser.GameObjects.Rectangle) {
-        activeButton.setFillStyle(0x4CAF50);
-        inactiveButton.setFillStyle(0x757575);
+        const activeColor = parseInt(Theme.colors.primary.replace('#', ''), 16);
+        const inactiveColor = parseInt(Theme.colors.surface.replace('#', ''), 16);
+        
+        activeButton.setFillStyle(activeColor);
+        inactiveButton.setFillStyle(inactiveColor);
     }
 
-    createSettingSlider(x: number, y: number, label: string, min: number, max: number, initial: number, callback: (value: number) => void) {
-        this.add.text(x, y, label, {
-            fontSize: '24px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-        });
+    createGameModeSelector(centerX: number, startY: number) {
+        const cardWidth = 350;
+        const cardHeight = 120;
+        const spacing = 30;
 
-        const valueText = this.add.text(x + 500, y, `${initial}`, {
-            fontSize: '24px',
-            fontFamily: 'Arial',
-            color: '#ffeb3b',
-            fontStyle: 'bold',
-        });
+        this.gameModes.forEach((mode, index) => {
+            const x = centerX - (this.gameModes.length - 1) * (cardWidth + spacing) / 2 + index * (cardWidth + spacing);
+            const y = startY;
 
-        const minusButton = this.createSmallButton(x + 300, y, '-', 0xF44336);
-        const plusButton = this.createSmallButton(x + 400, y, '+', 0x4CAF50);
-
-        let currentValue = initial;
-
-        minusButton.on('pointerdown', () => {
-            if (currentValue > min) {
-                currentValue--;
-                valueText.setText(`${currentValue}`);
-                callback(currentValue);
+            // Card background
+            const isSelected = mode.key === this.selectedGameMode;
+            const isEnabled = mode.enabled;
+            
+            let cardColor: number;
+            if (!isEnabled) {
+                cardColor = parseInt(Theme.colors.surface.replace('#', ''), 16);
+            } else if (isSelected) {
+                cardColor = parseInt(Theme.colors.primary.replace('#', ''), 16);
+            } else {
+                cardColor = parseInt(Theme.colors.card.replace('#', ''), 16);
             }
-        });
 
-        plusButton.on('pointerdown', () => {
-            if (currentValue < max) {
-                currentValue++;
-                valueText.setText(`${currentValue}`);
-                callback(currentValue);
+            const card = this.add.rectangle(x, y, cardWidth, cardHeight, cardColor, isEnabled ? 1 : 0.4);
+            card.setStrokeStyle(3, parseInt(Theme.colors.primary.replace('#', ''), 16), isSelected ? 1 : 0.3);
+
+            if (isEnabled) {
+                card.setInteractive({ useHandCursor: true });
+                card.on('pointerdown', () => this.selectGameMode(mode.key));
+                
+                // Hover effect
+                card.on('pointerover', () => {
+                    if (this.selectedGameMode !== mode.key) {
+                        card.setFillStyle(parseInt(Theme.colors.card.replace('#', ''), 16), 0.8);
+                    }
+                });
+                card.on('pointerout', () => {
+                    if (this.selectedGameMode !== mode.key) {
+                        card.setFillStyle(parseInt(Theme.colors.card.replace('#', ''), 16), 1);
+                    }
+                });
             }
+
+            // Mode name
+            const nameText = this.add.text(x, y - 30, mode.name, {
+                ...Theme.text.subtitle,
+                fontSize: '24px',
+                color: isEnabled ? Theme.colors.text : Theme.colors.textSecondary,
+            });
+            nameText.setOrigin(0.5);
+            nameText.setAlpha(isEnabled ? 1 : 0.5);
+
+            // Description
+            const descText = this.add.text(x, y + 5, mode.description, {
+                ...Theme.text.body,
+                fontSize: '18px',
+                color: Theme.colors.textSecondary,
+            });
+            descText.setOrigin(0.5);
+            descText.setAlpha(isEnabled ? 1 : 0.5);
+
+            // Players info
+            const playersText = this.add.text(x, y + 35, `${mode.maxPlayers} Players`, {
+                ...Theme.text.body,
+                fontSize: '16px',
+                color: Theme.colors.accent,
+            });
+            playersText.setOrigin(0.5);
+            playersText.setAlpha(isEnabled ? 1 : 0.5);
+
+            // "Coming Soon" badge for disabled modes
+            let badge: Phaser.GameObjects.Text | undefined;
+            if (!isEnabled) {
+                badge = this.add.text(x, y - 50, 'COMING SOON', {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '14px',
+                    color: Theme.colors.warning,
+                    fontStyle: 'bold',
+                });
+                badge.setOrigin(0.5);
+                badge.setAlpha(0.8);
+            }
+
+            this.gameModeButtons.set(mode.key, { button: card, label: nameText, desc: descText, badge });
         });
     }
 
-    createSmallButton(x: number, y: number, text: string, color: number) {
-        const button = this.add.rectangle(x, y, 50, 50, color);
-        const label = this.add.text(x, y, text, {
-            fontSize: '32px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
+    selectGameMode(mode: GameMode) {
+        const modeOption = this.gameModes.find(m => m.key === mode);
+        if (!modeOption || !modeOption.enabled) return;
+
+        this.selectedGameMode = mode;
+
+        // Update all cards
+        this.gameModeButtons.forEach((elements, key) => {
+            const isSelected = key === mode;
+            const modeData = this.gameModes.find(m => m.key === key)!;
+            
+            if (modeData.enabled) {
+                const cardColor = isSelected 
+                    ? parseInt(Theme.colors.primary.replace('#', ''), 16)
+                    : parseInt(Theme.colors.card.replace('#', ''), 16);
+                elements.button.setFillStyle(cardColor);
+                elements.button.setStrokeStyle(3, parseInt(Theme.colors.primary.replace('#', ''), 16), isSelected ? 1 : 0.3);
+            }
         });
-        label.setOrigin(0.5);
-
-        button.setInteractive({ useHandCursor: true });
-        button.on('pointerover', () => button.setScale(1.1));
-        button.on('pointerout', () => button.setScale(1));
-
-        return button;
     }
 
     async createLobby() {
         const lobbyName = this.lobbyNameInput?.value || 'My Lobby';
-        const gameMode = this.registry.get('selectedGameMode') || 'classic_1v1';
         const authToken = (window as any).authToken || '';
+        const username = (window as any).username || `Guest${Math.floor(Math.random() * 9000) + 1000}`;
+        const selectedMode = this.gameModes.find(m => m.key === this.selectedGameMode)!;
 
         console.log('🎮 Creating lobby...');
         console.log('  Lobby name:', lobbyName);
-        console.log('  Game mode:', gameMode);
-        console.log('  Auth token:', authToken ? `Present (${authToken.length} chars)` : '❌ MISSING');
-
-        if (!authToken) {
-            alert('You must be logged in to create a lobby. Token is missing!');
-            console.error('❌ Cannot create lobby - no auth token');
-            return;
-        }
+        console.log('  Game mode:', this.selectedGameMode);
+        console.log('  Max players:', selectedMode.maxPlayers);
+        console.log('  Auth token:', authToken ? `Present (${authToken.length} chars)` : '❌ None (guest mode)');
+        console.log('  Username:', username);
 
         try {
             console.log('📡 Sending request to backend...');
@@ -210,15 +246,14 @@ export default class CreateLobbyScene extends Phaser.Scene {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
                 },
                 body: JSON.stringify({
                     name: lobbyName,
-                    game_mode: gameMode,
+                    game_mode: this.selectedGameMode,
                     is_public: this.isPublic,
-                    max_players: this.maxPlayers,
-                    round_duration: this.roundDuration,
-                    cards_per_turn: this.cardsPerTurn,
+                    max_players: selectedMode.maxPlayers,
+                    guest_username: authToken ? undefined : username,
                 }),
             });
 
@@ -229,6 +264,7 @@ export default class CreateLobbyScene extends Phaser.Scene {
                 console.log('✅ Lobby created:', lobby);
                 this.cleanupInputs();
                 this.registry.set('lobbyCode', lobby.code);
+                this.registry.set('username', username);
                 this.registry.set('isHost', true);
                 this.scene.start('LobbyScene');
             } else {
@@ -243,24 +279,10 @@ export default class CreateLobbyScene extends Phaser.Scene {
     }
 
     cleanupInputs() {
-        // DOM elements are automatically cleaned up by Phaser scene shutdown
         this.lobbyNameInput = null;
     }
 
-    createButton(x: number, y: number, text: string, color: number, width: number = 300, height: number = 60) {
-        const button = this.add.rectangle(x, y, width, height, color);
-        const label = this.add.text(x, y, text, {
-            fontSize: '28px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-        });
-        label.setOrigin(0.5);
-
-        button.setInteractive({ useHandCursor: true });
-        button.on('pointerover', () => button.setScale(1.05));
-        button.on('pointerout', () => button.setScale(1));
-
-        return button;
+    shutdown() {
+        this.cleanupInputs();
     }
 }

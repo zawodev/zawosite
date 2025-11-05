@@ -19,15 +19,11 @@ class LobbyStatus(models.TextChoices):
 class Lobby(models.Model):
     code = models.CharField(max_length=8, unique=True, db_index=True)
     name = models.CharField(max_length=100)
-    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_gt_lobbies')
+    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_gt_lobbies', null=True, blank=True)
     game_mode = models.CharField(max_length=20, choices=GameMode.choices, default=GameMode.CLASSIC_1V1)
     is_public = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=LobbyStatus.choices, default=LobbyStatus.WAITING)
     max_players = models.IntegerField(default=2)
-    
-    # Game settings
-    round_duration = models.IntegerField(default=60, help_text='Round duration in seconds')
-    cards_per_turn = models.IntegerField(default=5, help_text='Cards drawn per turn')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -52,10 +48,7 @@ class Lobby(models.Model):
     def can_start(self):
         if self.game_mode == GameMode.CLASSIC_1V1:
             return self.current_players_count == 2
-        elif self.game_mode == GameMode.TOURNAMENT:
-            return self.current_players_count >= 4
-        elif self.game_mode == GameMode.BOSS_FIGHT:
-            return self.current_players_count >= 2
+        # Future game modes will have their own logic (>=4 for tournament, etc.)
         return False
 
 

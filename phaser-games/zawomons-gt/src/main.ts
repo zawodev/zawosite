@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import BootScene from './scenes/BootScene';
+import TitleScene from './scenes/TitleScene';
 import LobbyListScene from './scenes/LobbyListScene';
 import CreateLobbyScene from './scenes/CreateLobbyScene';
 import JoinLobbyScene from './scenes/JoinLobbyScene';
@@ -25,7 +25,7 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: false,
         },
     },
-    scene: [BootScene, LobbyListScene, CreateLobbyScene, JoinLobbyScene, LobbyScene],
+    scene: [TitleScene, LobbyListScene, CreateLobbyScene, JoinLobbyScene, LobbyScene],
 };
 
 const game = new Phaser.Game(config);

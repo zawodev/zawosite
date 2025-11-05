@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils.crypto import get_random_string
 from django.utils import timezone
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import Lobby, LobbyPlayer, GameMode, LobbyStatus
 from .serializers import (
     LobbySerializer, CreateLobbySerializer, 
@@ -58,14 +60,6 @@ class LobbyViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # For guests, create a temporary user or handle differently
-        if not host:
-            # For now, guests cannot create lobbies
-            return Response(
-                {'error': 'Only authenticated users can create lobbies'}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         # Create lobby
         lobby = Lobby.objects.create(
             code=code,
@@ -73,10 +67,11 @@ class LobbyViewSet(viewsets.ModelViewSet):
             **serializer.validated_data
         )
 
-        # Add host as first player
+        # Add host/creator as first player
         LobbyPlayer.objects.create(
             lobby=lobby,
-            user=host,
+            user=host if host else None,
+            guest_username=guest_username if not host else None,
             is_ready=True
         )
 
@@ -137,6 +132,16 @@ class LobbyViewSet(viewsets.ModelViewSet):
             guest_username=guest_username if not user else None
         )
 
+        # Notify WebSocket group about new player
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'lobby_{code}',
+            {
+                'type': 'lobby_update',
+                'lobby': LobbySerializer(lobby).data
+            }
+        )
+
         return Response(
             LobbySerializer(lobby).data,
             status=status.HTTP_200_OK
@@ -166,13 +171,38 @@ class LobbyViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # If host leaves, delete lobby or transfer ownership
-        if user and lobby.host == user:
-            # For now, delete the lobby
+        # If creator leaves (first player who is ready), delete lobby or transfer ownership
+        # Check if this player is the creator (first player)
+        first_player = lobby.players.order_by('id').first()
+        if first_player and first_player.id == player.id:
+            # Creator is leaving - notify other players before deleting
+            if lobby.players.count() > 1:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'lobby_{code}',
+                    {
+                        'type': 'lobby_closed',
+                        'reason': 'Host left the lobby'
+                    }
+                )
+            
+            # Delete the lobby
             lobby.delete()
             return Response({'message': 'Lobby deleted'}, status=status.HTTP_200_OK)
         
+        # Remove player
         player.delete()
+        
+        # Notify WebSocket group about player leaving
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'lobby_{code}',
+            {
+                'type': 'lobby_update',
+                'lobby': LobbySerializer(lobby).data
+            }
+        )
+        
         return Response({'message': 'Left lobby'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
@@ -186,11 +216,26 @@ class LobbyViewSet(viewsets.ModelViewSet):
             )
 
         user = request.user if request.user.is_authenticated else None
+        guest_username = request.data.get('guest_username', None)
         
-        # Only host can start
-        if not user or lobby.host != user:
+        # Check if requester is the creator (first player)
+        first_player = lobby.players.order_by('id').first()
+        if not first_player:
             return Response(
-                {'error': 'Only host can start the game'},
+                {'error': 'No players in lobby'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if the requester is the first player
+        is_creator = False
+        if user and first_player.user == user:
+            is_creator = True
+        elif guest_username and first_player.guest_username == guest_username:
+            is_creator = True
+        
+        if not is_creator:
+            return Response(
+                {'error': 'Only lobby creator can start the game'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -202,38 +247,6 @@ class LobbyViewSet(viewsets.ModelViewSet):
 
         lobby.status = LobbyStatus.IN_PROGRESS
         lobby.started_at = timezone.now()
-        lobby.save()
-
-        return Response(
-            LobbySerializer(lobby).data,
-            status=status.HTTP_200_OK
-        )
-
-    @action(detail=True, methods=['post'])
-    def update_settings(self, request, code=None):
-        try:
-            lobby = Lobby.objects.get(code=code)
-        except Lobby.DoesNotExist:
-            return Response(
-                {'error': 'Lobby not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        user = request.user if request.user.is_authenticated else None
-        
-        # Only host can update settings
-        if not user or lobby.host != user:
-            return Response(
-                {'error': 'Only host can update settings'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        # Update allowed fields
-        allowed_fields = ['round_duration', 'cards_per_turn', 'is_public']
-        for field in allowed_fields:
-            if field in request.data:
-                setattr(lobby, field, request.data[field])
-        
         lobby.save()
 
         return Response(

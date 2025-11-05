@@ -16,15 +16,23 @@ class LobbySerializer(serializers.ModelSerializer):
     current_players_count = serializers.IntegerField(read_only=True)
     is_full = serializers.BooleanField(read_only=True)
     can_start = serializers.BooleanField(read_only=True)
-    host_username = serializers.CharField(source='host.username', read_only=True)
+    host_username = serializers.SerializerMethodField()
+    
+    def get_host_username(self, obj):
+        # For guest-created lobbies, return the first player's name
+        if obj.host:
+            return obj.host.username
+        first_player = obj.players.order_by('id').first()
+        if first_player:
+            return first_player.display_name
+        return "Unknown"
     
     class Meta:
         model = Lobby
         fields = [
             'id', 'code', 'name', 'host_username', 'game_mode', 'is_public',
             'status', 'max_players', 'current_players_count', 'is_full',
-            'can_start', 'round_duration', 'cards_per_turn', 'players',
-            'created_at', 'started_at'
+            'can_start', 'players', 'created_at', 'started_at'
         ]
         read_only_fields = ['code', 'host_username', 'status', 'created_at', 'started_at']
 
@@ -34,8 +42,6 @@ class CreateLobbySerializer(serializers.Serializer):
     game_mode = serializers.ChoiceField(choices=GameMode.choices, default=GameMode.CLASSIC_1V1)
     is_public = serializers.BooleanField(default=True)
     max_players = serializers.IntegerField(default=2, min_value=2, max_value=16)
-    round_duration = serializers.IntegerField(default=60, min_value=30, max_value=300)
-    cards_per_turn = serializers.IntegerField(default=5, min_value=1, max_value=10)
 
 
 class JoinLobbySerializer(serializers.Serializer):

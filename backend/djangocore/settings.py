@@ -48,7 +48,11 @@ ALLOWED_HOSTS = [
     FRONTEND_URL.replace('http://', '').replace('https://', ''),
     
     'localhost',
+    'localhost:3000',
+    'localhost:8000',
     '127.0.0.1',
+    '127.0.0.1:8000',
+    '[::1]',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -64,6 +68,7 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',  # Must be before staticfiles
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -122,15 +127,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'djangocore.wsgi.application'
 ASGI_APPLICATION = 'djangocore.asgi.application'
 
-# Channels configuration
+# Channels configuration - use InMemory for development (no Redis needed)
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+# For production with Redis, use:
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+#         },
+#     },
+# }
 
 
 # Database
@@ -202,7 +214,24 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True  # lub ogranicz do domeny frontendu
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    FRONTEND_URL,
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

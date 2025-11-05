@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Theme, StyledUI } from '../styles/theme';
 
 interface Player {
     id: number;
@@ -32,6 +33,7 @@ export default class LobbyScene extends Phaser.Scene {
     private settingsContainer!: Phaser.GameObjects.Container;
     private startButton!: Phaser.GameObjects.Rectangle;
     private readyButton!: Phaser.GameObjects.Rectangle;
+    private readyButtonLabel!: Phaser.GameObjects.Text;
     private isReady: boolean = false;
 
     constructor() {
@@ -47,51 +49,57 @@ export default class LobbyScene extends Phaser.Scene {
         const height = 1080;
         const centerX = width / 2;
 
-        // Background
+        // Background with gradient
         const graphics = this.add.graphics();
-        graphics.fillGradientStyle(0x667eea, 0x667eea, 0x764ba2, 0x764ba2, 1);
-        graphics.fillRect(0, 0, width, height);
+        StyledUI.createGradientBackground(graphics, width, height, 'background');
 
         // Title
-        const title = this.add.text(centerX, 80, 'Lobby', {
-            fontSize: '64px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6,
-        });
+        const title = this.add.text(centerX, 80, 'Lobby', Theme.text.title);
         title.setOrigin(0.5);
 
-        // Lobby code
-        const codeText = this.add.text(centerX, 160, `Code: ${this.lobbyCode}`, {
-            fontSize: '36px',
-            fontFamily: 'Arial',
-            color: '#4CAF50',
-            fontStyle: 'bold',
+        // Lobby code with copy button
+        const codeText = this.add.text(centerX - 100, 160, `Code: ${this.lobbyCode}`, {
+            ...Theme.text.heading,
+            color: Theme.colors.primary,
         });
         codeText.setOrigin(0.5);
 
+        // Copy code button
+        StyledUI.createStyledButton(
+            this, centerX + 150, 160, '📋 Copy', 'secondary', 150, 50,
+            () => {
+                navigator.clipboard.writeText(this.lobbyCode).then(() => {
+                    console.log('✅ Code copied to clipboard:', this.lobbyCode);
+                    const feedback = this.add.text(centerX + 150, 220, 'Copied!', {
+                        fontSize: '20px',
+                        color: Theme.colors.primary,
+                    });
+                    feedback.setOrigin(0.5);
+                    this.time.delayedCall(2000, () => feedback.destroy());
+                }).catch(err => {
+                    console.error('❌ Failed to copy:', err);
+                });
+            }
+        );
+
         // Leave button
-        const leaveButton = this.createButton(150, 80, 'Leave', 0xF44336, 200, 50);
-        leaveButton.on('pointerdown', () => this.leaveLobby());
+        StyledUI.createStyledButton(
+            this, 150, 80, 'Leave', 'danger', 200, 50,
+            () => this.leaveLobby()
+        );
 
         // Players section
         this.add.text(300, 250, 'Players', {
-            fontSize: '42px',
-            fontFamily: 'Arial',
-            color: '#ffeb3b',
-            fontStyle: 'bold',
+            ...Theme.text.subtitle,
+            color: Theme.colors.accent,
         });
 
         this.playerContainer = this.add.container(0, 0);
 
         // Settings section (right side)
         this.add.text(1100, 250, 'Settings', {
-            fontSize: '42px',
-            fontFamily: 'Arial',
-            color: '#ffeb3b',
-            fontStyle: 'bold',
+            ...Theme.text.subtitle,
+            color: Theme.colors.accent,
         });
 
         this.settingsContainer = this.add.container(0, 0);
@@ -103,7 +111,9 @@ export default class LobbyScene extends Phaser.Scene {
             this.startButton.setAlpha(0.5);
             this.startButton.disableInteractive();
         } else {
-            this.readyButton = this.createButton(centerX, 950, 'Ready', 0x2196F3, 400, 80);
+            const result = this.createButtonWithLabel(centerX, 950, 'Ready', 0x2196F3, 400, 80);
+            this.readyButton = result.button;
+            this.readyButtonLabel = result.label;
             this.readyButton.on('pointerdown', () => this.toggleReady());
         }
 
@@ -119,6 +129,16 @@ export default class LobbyScene extends Phaser.Scene {
 
         this.ws.onopen = () => {
             console.log('✅ WebSocket connected');
+            
+            // Send guest_username immediately after connection to identify player
+            const authToken = (window as any).authToken || '';
+            if (!authToken && this.username) {
+                console.log('👤 Sending guest identification:', this.username);
+                this.ws?.send(JSON.stringify({
+                    type: 'identify',
+                    guest_username: this.username
+                }));
+            }
         };
 
         this.ws.onmessage = (event) => {
@@ -150,6 +170,10 @@ export default class LobbyScene extends Phaser.Scene {
             case 'player_left':
                 console.log('👤 Player left:', data.player_id);
                 break;
+            case 'lobby_closed':
+                console.log('🚪 Lobby closed:', data.reason);
+                this.handleLobbyClosed(data.reason);
+                break;
             case 'game_started':
                 console.log('🎮 Game started!');
                 this.startGameplay();
@@ -158,6 +182,29 @@ export default class LobbyScene extends Phaser.Scene {
                 console.log(`💬 ${data.username}: ${data.message}`);
                 break;
         }
+    }
+
+    handleLobbyClosed(reason: string) {
+        // Show notification
+        const notification = this.add.text(960, 540, reason, {
+            fontSize: '32px',
+            color: Theme.colors.danger,
+            backgroundColor: Theme.colors.background,
+            padding: { x: 30, y: 20 },
+        });
+        notification.setOrigin(0.5);
+        notification.setDepth(1000);
+
+        // Close WebSocket
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+
+        // Return to lobby list after 2 seconds
+        this.time.delayedCall(2000, () => {
+            this.scene.start('LobbyListScene');
+        });
     }
 
     updateLobbyUI() {
@@ -182,11 +229,29 @@ export default class LobbyScene extends Phaser.Scene {
     }
 
     updatePlayersList() {
-        if (!this.lobbyData) return;
+        if (!this.lobbyData) {
+            console.log('⚠️ No lobby data');
+            return;
+        }
+
+        console.log('👥 Updating players list:', this.lobbyData.players);
 
         this.playerContainer.removeAll(true);
 
+        if (!this.lobbyData.players || this.lobbyData.players.length === 0) {
+            console.log('⚠️ No players in lobby data');
+            // Show "No players" message
+            const noPlayers = this.add.text(300, 320, 'No players yet...', {
+                fontSize: '24px',
+                fontFamily: 'Arial',
+                color: '#999999',
+            });
+            this.playerContainer.add(noPlayers);
+            return;
+        }
+
         this.lobbyData.players.forEach((player, index) => {
+            console.log(`  Player ${index}:`, player.display_name, player.is_ready ? '✅' : '⏳');
             const playerCard = this.createPlayerCard(player, 300, 320 + index * 120);
             this.playerContainer.add(playerCard);
         });
@@ -202,26 +267,20 @@ export default class LobbyScene extends Phaser.Scene {
         // Avatar placeholder
         const avatar = this.add.circle(50, 50, 35, 0x2196F3);
 
+        // Ready status indicator - colored dot next to name
+        const readyDot = this.add.circle(95, 35, 8, player.is_ready ? 0x4CAF50 : 0x757575);
+
         // Name
-        const name = this.add.text(100, 25, player.display_name, {
+        const name = this.add.text(110, 25, player.display_name, {
             fontSize: '28px',
             fontFamily: 'Arial',
             color: '#ffffff',
             fontStyle: 'bold',
         });
 
-        // Ready status
-        const readyBg = this.add.rectangle(550, 50, 120, 50, player.is_ready ? 0x4CAF50 : 0x757575);
-        const readyText = this.add.text(550, 50, player.is_ready ? 'Ready' : 'Not Ready', {
-            fontSize: '20px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-        });
-        readyText.setOrigin(0.5);
-
-        // Host badge
+        // Host/Creator badge
         if (this.lobbyData && player.display_name === this.lobbyData.host_username) {
-            const hostBadge = this.add.text(100, 60, '👑 Host', {
+            const hostBadge = this.add.text(110, 60, '👑 Creator', {
                 fontSize: '18px',
                 fontFamily: 'Arial',
                 color: '#FFD700',
@@ -229,7 +288,7 @@ export default class LobbyScene extends Phaser.Scene {
             container.add(hostBadge);
         }
 
-        container.add([bg, avatar, name, readyBg, readyText]);
+        container.add([bg, avatar, readyDot, name]);
 
         return container;
     }
@@ -243,8 +302,6 @@ export default class LobbyScene extends Phaser.Scene {
             { label: 'Game Mode:', value: this.formatGameMode(this.lobbyData.game_mode) },
             { label: 'Max Players:', value: `${this.lobbyData.max_players}` },
             { label: 'Players:', value: `${this.lobbyData.current_players_count}/${this.lobbyData.max_players}` },
-            { label: 'Round Duration:', value: `${this.lobbyData.round_duration}s` },
-            { label: 'Cards per Turn:', value: `${this.lobbyData.cards_per_turn}` },
             { label: 'Lobby Type:', value: this.lobbyData.is_public ? 'Public' : 'Private' },
         ];
 
@@ -288,26 +345,27 @@ export default class LobbyScene extends Phaser.Scene {
             }));
         }
 
-        // Update button appearance
-        if (this.readyButton) {
+        // Update button appearance using stored reference
+        if (this.readyButton && this.readyButtonLabel) {
             this.readyButton.setFillStyle(this.isReady ? 0x4CAF50 : 0x2196F3);
-            const label = this.children.getByName('readyLabel') as Phaser.GameObjects.Text;
-            if (label) {
-                label.setText(this.isReady ? 'Not Ready' : 'Ready');
-            }
+            this.readyButtonLabel.setText(this.isReady ? 'Not Ready' : 'Ready');
         }
     }
 
     async startGame() {
         const authToken = (window as any).authToken || '';
+        const username = this.username || (window as any).username;
 
         try {
             const response = await fetch(`http://localhost:8000/api/v1/zawomons-gt/lobbies/${this.lobbyCode}/start/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
                 },
+                body: JSON.stringify({
+                    guest_username: authToken ? undefined : username,
+                }),
             });
 
             if (response.ok) {
@@ -325,6 +383,8 @@ export default class LobbyScene extends Phaser.Scene {
     async leaveLobby() {
         const authToken = (window as any).authToken || '';
 
+        console.log('🚪 Leaving lobby...');
+
         try {
             await fetch(`http://localhost:8000/api/v1/zawomons-gt/lobbies/${this.lobbyCode}/leave/`, {
                 method: 'POST',
@@ -336,19 +396,21 @@ export default class LobbyScene extends Phaser.Scene {
                     guest_username: this.username,
                 }),
             });
+            console.log('✅ Left lobby successfully');
         } catch (error) {
-            console.error('Failed to leave lobby:', error);
+            console.error('❌ Failed to leave lobby:', error);
         }
 
         this.closeWebSocket();
-        this.scene.start('MenuScene');
+        this.scene.start('LobbyListScene');
     }
 
     startGameplay() {
         this.closeWebSocket();
+        console.log('🎮 Game starting!');
         // TODO: Start actual game
         alert('Game starting! (Gameplay not yet implemented)');
-        this.scene.start('MenuScene');
+        this.scene.start('LobbyListScene');
     }
 
     closeWebSocket() {
@@ -367,13 +429,29 @@ export default class LobbyScene extends Phaser.Scene {
             fontStyle: 'bold',
         });
         label.setOrigin(0.5);
-        label.setName('readyLabel');
 
         button.setInteractive({ useHandCursor: true });
         button.on('pointerover', () => button.setScale(1.05));
         button.on('pointerout', () => button.setScale(1));
 
         return button;
+    }
+
+    createButtonWithLabel(x: number, y: number, text: string, color: number, width: number = 300, height: number = 60) {
+        const button = this.add.rectangle(x, y, width, height, color);
+        const label = this.add.text(x, y, text, {
+            fontSize: '28px',
+            fontFamily: 'Arial',
+            color: '#ffffff',
+            fontStyle: 'bold',
+        });
+        label.setOrigin(0.5);
+
+        button.setInteractive({ useHandCursor: true });
+        button.on('pointerover', () => button.setScale(1.05));
+        button.on('pointerout', () => button.setScale(1));
+
+        return { button, label };
     }
 
     shutdown() {

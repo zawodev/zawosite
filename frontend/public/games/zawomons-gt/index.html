@@ -101,7 +101,7 @@
             object-fit: contain;
         }
     </style>
-  <script type="module" crossorigin src="./assets/index-DwwXTs1K.js"></script>
+  <script type="module" crossorigin src="./assets/index-yZ8fzSy2.js"></script>
 </head>
 <body>
     <div id="game-container">
@@ -122,6 +122,14 @@
                 // expose globally for scenes
                 window.authToken = authToken;
                 console.log('🔑 Phaser received token:', authToken ? authToken.substring(0, 20) + '... (length: ' + authToken.length + ')' : '❌ EMPTY TOKEN');
+                
+                // Hide edit button if user is authenticated
+                const editButton = document.getElementById('edit-name');
+                if (authToken) {
+                    if (editButton) editButton.style.display = 'none';
+                } else {
+                    if (editButton) editButton.style.display = 'inline-block';
+                }
                 
                 if (window.phaserGame) {
                     window.phaserGame.events.emit('authTokenReceived', authToken);

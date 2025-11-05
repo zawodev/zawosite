@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Theme, StyledUI } from '../styles/theme';
 
 export default class JoinLobbyScene extends Phaser.Scene {
     private codeInput: HTMLInputElement | null = null;
@@ -12,48 +13,36 @@ export default class JoinLobbyScene extends Phaser.Scene {
         const height = 1080;
         const centerX = width / 2;
 
-        // Background
+        // Background with gradient
         const graphics = this.add.graphics();
-        graphics.fillGradientStyle(0x667eea, 0x667eea, 0x764ba2, 0x764ba2, 1);
-        graphics.fillRect(0, 0, width, height);
+        StyledUI.createGradientBackground(graphics, width, height, 'background');
 
         // Title
-        const title = this.add.text(centerX, 300, 'Join Lobby by Code', {
-            fontSize: '64px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6,
-        });
+        const title = this.add.text(centerX, 300, 'Join Lobby by Code', Theme.text.title);
         title.setOrigin(0.5);
 
         // Back button
-        const backButton = this.createButton(150, 80, 'Back', 0x757575, 200, 50);
-        backButton.on('pointerdown', () => {
-            this.cleanupInputs();
-            this.scene.start('LobbyListScene');
-        });
+        StyledUI.createStyledButton(
+            this, 150, 80, 'Back', 'secondary', 200, 50,
+            () => {
+                this.cleanupInputs();
+                this.scene.start('LobbyListScene');
+            }
+        );
 
         // Code input
-        this.add.text(centerX - 200, 500, 'Lobby Code:', {
-            fontSize: '32px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-        });
+        this.add.text(centerX - 200, 500, 'Lobby Code:', Theme.text.body);
 
         this.createInputField(centerX + 100, 500, 300, 'ABC123');
 
         // Join button
-        const joinButton = this.createButton(centerX, 700, 'Join Lobby', 0x4CAF50, 400, 80);
-        joinButton.on('pointerdown', () => this.joinLobby());
+        StyledUI.createStyledButton(
+            this, centerX, 700, 'Join Lobby', 'primary', 400, 80,
+            () => this.joinLobby()
+        );
 
         // Instructions
-        const instructions = this.add.text(centerX, 850, 'Enter the 6-character lobby code to join', {
-            fontSize: '24px',
-            fontFamily: 'Arial',
-            color: '#e0e0e0',
-        });
+        const instructions = this.add.text(centerX, 850, 'Enter the 6-character lobby code to join', Theme.text.bodySmall);
         instructions.setOrigin(0.5);
     }
 
@@ -66,12 +55,12 @@ export default class JoinLobbyScene extends Phaser.Scene {
         input.style.height = '50px';
         input.style.fontSize = '28px';
         input.style.padding = '10px';
-        input.style.border = '2px solid #4CAF50';
+        input.style.border = `2px solid ${Theme.colors.primary}`;
         input.style.borderRadius = '4px';
-        input.style.backgroundColor = '#ffffff';
+        input.style.backgroundColor = Theme.colors.surface;
         input.style.textAlign = 'center';
         input.style.textTransform = 'uppercase';
-        input.style.color = '#000000';
+        input.style.color = Theme.colors.text;
 
         // Use Phaser's DOM Element system so it scales with the game
         this.add.dom(x, y, input);
@@ -134,23 +123,6 @@ export default class JoinLobbyScene extends Phaser.Scene {
     cleanupInputs() {
         // DOM elements are automatically cleaned up by Phaser scene shutdown
         this.codeInput = null;
-    }
-
-    createButton(x: number, y: number, text: string, color: number, width: number = 300, height: number = 60) {
-        const button = this.add.rectangle(x, y, width, height, color);
-        const label = this.add.text(x, y, text, {
-            fontSize: '28px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-        });
-        label.setOrigin(0.5);
-
-        button.setInteractive({ useHandCursor: true });
-        button.on('pointerover', () => button.setScale(1.05));
-        button.on('pointerout', () => button.setScale(1));
-
-        return button;
     }
 
     shutdown() {

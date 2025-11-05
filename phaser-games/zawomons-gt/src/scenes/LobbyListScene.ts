@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Theme, StyledUI } from '../styles/theme';
 
 interface Lobby {
     id: number;
@@ -24,33 +25,31 @@ export default class LobbyListScene extends Phaser.Scene {
         const height = 1080;
         const centerX = width / 2;
 
-        // Background
+        // Background with theme gradient
         const graphics = this.add.graphics();
-        graphics.fillGradientStyle(0x667eea, 0x667eea, 0x764ba2, 0x764ba2, 1);
-        graphics.fillRect(0, 0, width, height);
+        StyledUI.createGradientBackground(graphics, width, height, 'background');
 
         // Title
-        const title = this.add.text(centerX, 80, 'Public Lobbies', {
-            fontSize: '64px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 6,
-        });
+        const title = this.add.text(centerX, 80, 'Public Lobbies', Theme.text.title);
         title.setOrigin(0.5);
 
         // Create lobby button (top left)
-        const createButton = this.createButton(180, 80, 'Create Lobby', 0x4CAF50, 250, 50);
-        createButton.on('pointerdown', () => this.scene.start('CreateLobbyScene'));
+        StyledUI.createStyledButton(
+            this, 180, 80, 'Create Lobby', 'primary', 250, 50,
+            () => this.scene.start('CreateLobbyScene')
+        );
 
         // Join by code button (top left, next to create)
-        const joinButton = this.createButton(460, 80, 'Join by Code', 0x2196F3, 250, 50);
-        joinButton.on('pointerdown', () => this.scene.start('JoinLobbyScene'));
+        StyledUI.createStyledButton(
+            this, 460, 80, 'Join by Code', 'secondary', 250, 50,
+            () => this.scene.start('JoinLobbyScene')
+        );
 
         // Refresh button (top right)
-        const refreshButton = this.createButton(1740, 80, 'Refresh', 0x757575, 200, 50);
-        refreshButton.on('pointerdown', () => this.fetchLobbies());
+        StyledUI.createStyledButton(
+            this, 1740, 80, 'Refresh', 'secondary', 200, 50,
+            () => this.fetchLobbies()
+        );
 
         // Lobby list container (scrollable area)
         this.lobbyContainer = this.add.container(0, 0);

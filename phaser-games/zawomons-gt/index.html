@@ -123,6 +123,14 @@
                 window.authToken = authToken;
                 console.log('🔑 Phaser received token:', authToken ? authToken.substring(0, 20) + '... (length: ' + authToken.length + ')' : '❌ EMPTY TOKEN');
                 
+                // Hide edit button if user is authenticated
+                const editButton = document.getElementById('edit-name');
+                if (authToken) {
+                    if (editButton) editButton.style.display = 'none';
+                } else {
+                    if (editButton) editButton.style.display = 'inline-block';
+                }
+                
                 if (window.phaserGame) {
                     window.phaserGame.events.emit('authTokenReceived', authToken);
                 }
