@@ -103,10 +103,8 @@ function onLoad() {
   loading.value = false
   error.value = false
   
-  // Po załadowaniu iframe, spróbuj wysłać token ponownie za chwilę
-  setTimeout(() => {
-    sendTokenToUnity()
-  }, 2000)
+  // Send token immediately after iframe loads
+  sendTokenToUnityViaPostMessage()
 }
 
 function onError() {
@@ -116,19 +114,10 @@ function onError() {
 }
 
 function setupUnityTokenSender() {
-  // Wyślij token natychmiast przez postMessage do iframe
+  // Send token after a short delay to ensure iframe is ready
   setTimeout(() => {
     sendTokenToUnityViaPostMessage()
-  }, 3000) // Daj Unity czas na załadowanie
-  
-  // Powtarzaj co 2 sekundy przez pierwsze 10 sekund
-  const sendInterval = setInterval(() => {
-    sendTokenToUnityViaPostMessage()
-  }, 2000)
-  
-  setTimeout(() => {
-    clearInterval(sendInterval)
-  }, 10000)
+  }, 1000)
 }
 
 function sendTokenToUnityViaPostMessage() {
@@ -149,30 +138,9 @@ function sendTokenToUnityViaPostMessage() {
   try {
     // Wyślij wiadomość do iframe
     iframe.contentWindow.postMessage(message, '*')
-    console.log('Token wysłany do Unity przez postMessage:', token ? token.substring(0, 10) + '...' : 'empty')
+    console.log('✅ Token sent to game:', token ? token.substring(0, 10) + '...' : 'empty')
   } catch (error) {
-    console.error('Błąd wysyłania tokena do Unity:', error)
-  }
-}
-
-function sendTokenToUnity() {
-  // Stare podejście - zostaw jako fallback
-  if (window.unityInstance) {
-    const token = authStore.token || localStorage.getItem('token') || localStorage.getItem('access_token')
-    
-    if (token) {
-      try {
-        window.unityInstance.SendMessage('GameManager', 'SetAuthToken', token)
-        console.log('Token wysłany do Unity (stare API):', token.substring(0, 10) + '...')
-      } catch (error) {
-        console.error('Błąd wysyłania tokena do Unity (stare API):', error)
-      }
-    } else {
-      window.unityInstance.SendMessage('GameManager', 'SetAuthToken', '')
-    }
-  } else {
-    console.log('window.unityInstance nie dostępny, używam postMessage')
-    sendTokenToUnityViaPostMessage()
+    console.error('Błąd wysyłania tokena do gry:', error)
   }
 }
 

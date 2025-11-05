@@ -55,6 +55,16 @@ export const GAMES: Game[] = [
     tags: [
       { icon: UserIcon, text: 'Multiplayer' }
     ]
+  },
+  {
+    id: 5,
+    slug: 'zawomons-gt',
+    title: 'Zawomons: Grand Tournament',
+    description: 'Turowa gierka karciana osadzona w uniwersum zawomonsów. Zbieraj czempionów, ulepszaj zdolności, graj ze znajomymi aby zostać czempionem!',
+    image: '/games/zawomons-gt/unnamed.jpg',
+    tags: [
+      { icon: UserIcon, text: 'Singleplayer' }
+    ]
   }
 ]
 

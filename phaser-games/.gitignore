@@ -1,0 +1,4 @@
+# Ignoruj foldery node_modules i dist we wszystkich projektach
+**/node_modules
+**/dist
+**/.DS_Store
