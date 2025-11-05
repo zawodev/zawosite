@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'zawomons',
     'zawomons_gt',
+    'game_comments',
 
     'corsheaders',
     'channels',
@@ -235,20 +236,22 @@ CORS_ALLOW_HEADERS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  # Simple token auth
+        'rest_framework.authentication.SessionAuthentication',  # For browsable API
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
 }
-REST_USE_JWT = True
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),  # 1 rok - praktycznie nieskończoność
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=365),
-    'ROTATE_REFRESH_TOKENS': True,  # Automatycznie odnawiaj refresh tokeny
-    'BLACKLIST_AFTER_ROTATION': False,  # Nie blacklistuj starych tokenów
-}
+# JWT disabled - using simple token auth
+# REST_USE_JWT = True
+# SIMPLE_JWT = {
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+#     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=365),
+#     'ROTATE_REFRESH_TOKENS': True,
+#     'BLACKLIST_AFTER_ROTATION': False,
+# }
 
 SITE_ID = 1
 

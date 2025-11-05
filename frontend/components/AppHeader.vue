@@ -30,6 +30,9 @@
 
         <!-- User Info & Actions -->
         <div class="flex items-center space-x-4">
+          <!-- Backend Status -->
+          <BackendStatus />
+          
           <!-- Theme Toggle -->
           <!-- <ThemeToggle /> -->
           <!-- User Display -->

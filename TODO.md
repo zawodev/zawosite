@@ -15,7 +15,7 @@
 4. 🔄 games page
 5. 🔄 users page
 6. ✅ footer and header (navbar)
-7. ❌ PILNE - dodaj sprawdzanie statusu backendu (stoi na render) i pokazuj na froncie zawsze w headerze (zielona kropka / czerwona kropka) komunikat czy backend jest live czy nie
+7. ✅ PILNE - dodaj sprawdzanie statusu backendu (stoi na render) i pokazuj na froncie zawsze w headerze (zielona kropka / czerwona kropka) komunikat czy backend jest live czy nie
 
 # admin page
 1. 🔄 view all users
