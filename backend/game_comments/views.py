@@ -46,8 +46,20 @@ class GameCommentViewSet(viewsets.ModelViewSet):
         game_slug = self.kwargs.get('game_slug')
         serializer.save(user=self.request.user, game_slug=game_slug)
     
+    def create(self, request, *args, **kwargs):
+        """Override create to return full serialized comment"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        # Get the created comment and serialize it with full serializer
+        comment = serializer.instance
+        output_serializer = GameCommentSerializer(comment, context={'request': request})
+        headers = self.get_success_headers(output_serializer.data)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def vote(self, request, pk=None):
+    def vote(self, request, pk=None, game_slug=None):
         """Upvote or downvote a comment"""
         comment = self.get_object()
         vote_type = request.data.get('vote_type')
@@ -70,14 +82,14 @@ class GameCommentViewSet(viewsets.ModelViewSet):
             if vote.vote_type == vote_type:
                 # Same vote - remove it (toggle off)
                 vote.delete()
-                return Response({'message': 'Vote removed'}, status=status.HTTP_200_OK)
             else:
                 # Different vote - change it
                 vote.vote_type = vote_type
                 vote.save()
-                return Response({'message': 'Vote updated'}, status=status.HTTP_200_OK)
         
-        return Response({'message': 'Vote added'}, status=status.HTTP_201_CREATED)
+        # Return updated comment with vote counts
+        serializer = GameCommentSerializer(comment, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
     def delete_comment(self, request, pk=None):
