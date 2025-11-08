@@ -14,7 +14,7 @@
 
         <!-- Navigation -->
         <nav class="hidden md:flex space-x-4">
-          <NuxtLink to="/admin" class="nav-btn">
+          <NuxtLink v-if="authStore.isAuthenticated && authStore.user?.role === 'admin'" to="/admin" class="nav-btn">
             <span class="nav-btn__icon">
               <AdjustmentsVerticalIcon class="w-5 h-5 mr-1" />
             </span>
@@ -30,6 +30,9 @@
 
         <!-- User Info & Actions -->
         <div class="flex items-center space-x-4">
+          <!-- Backend Status -->
+          <BackendStatus />
+          
           <!-- Theme Toggle -->
           <!-- <ThemeToggle /> -->
           <!-- User Display -->
@@ -48,13 +51,13 @@
                 {{ authStore.isGuest ? 'G' : authStore.user?.username?.charAt(0).toUpperCase() }}
               </div>
               <div class="hidden sm:block">
-                <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {{ authStore.displayName }}
                 </p>
-                <p v-if="userRoleLabel" class="text-xs text-gray-500">
+                <p v-if="userRoleLabel" class="text-xs text-gray-500 dark:text-gray-400">
                   {{ userRoleLabel }}
                 </p>
-                <p v-else-if="authStore.isGuest" class="text-xs text-gray-500">
+                <p v-else-if="authStore.isGuest" class="text-xs text-gray-500 dark:text-gray-400">
                   Gość
                 </p>
               </div>
@@ -62,7 +65,7 @@
             <!-- Logout Button -->
             <button
                 @click="handleLogout"
-                class="text-gray-500 hover:text-red-600 transition-colors p-2 rounded-md hover:bg-gray-100"
+                class="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
                 title="Wyloguj się"
             >
               <ArrowRightOnRectangleIcon class="w-5 h-5" />
@@ -97,17 +100,18 @@
 
       <!-- Mobile menu -->
       <div v-if="mobileMenuOpen" class="md:hidden">
-        <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
+        <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200 dark:border-gray-700">
           <NuxtLink
+              v-if="authStore.isAuthenticated && authStore.user?.role === 'admin'"
               to="/admin"
-              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+              class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
               @click="mobileMenuOpen = false"
           >
             Panel Admina
           </NuxtLink>
           <NuxtLink
-              to="/games"
-              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+              to="/play"
+              class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
               @click="mobileMenuOpen = false"
           >
             Gry
@@ -115,7 +119,7 @@
           <NuxtLink
               v-if="authStore.user"
               :to="`/profile/${authStore.user.username}`"
-              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+              class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md"
               @click="mobileMenuOpen = false"
           >
             Mój Profil

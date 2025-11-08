@@ -209,7 +209,7 @@ export default class TitleScene extends Phaser.Scene {
                 console.log('📡 Fetching user data from API...');
                 const response = await fetch('http://localhost:8000/api/v1/users/me/', {
                     headers: {
-                        'Authorization': `Bearer ${authToken}`,
+                        'Authorization': `Token ${authToken}`,
                     },
                 });
 

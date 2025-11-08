@@ -115,20 +115,26 @@ export const useAuthStore = defineStore('auth', {
         async fetchUsers(): Promise<User[]> {
             const config = useRuntimeConfig()
 
+            if (!this.token) {
+                throw new Error('Brak tokena autoryzacyjnego')
+            }
+
             const headers: Record<string, string> = {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${this.token}`
             }
 
-            if (this.token) {
-                headers['Authorization'] = `Bearer ${this.token}`
+            try {
+                const data = await $fetch<User[]>('/api/v1/users/', {
+                    baseURL: config.public.apiBase,
+                    headers
+                })
+
+                return data
+            } catch (error: any) {
+                console.error('Fetch users error:', error)
+                throw error
             }
-
-            const { data } = await $fetch<{ data: User[] }>('/users', {
-                baseURL: config.public.apiBase,
-                headers
-            })
-
-            return data
         },
 
         async fetchUserProfile(username: string): Promise<UserProfile> {
@@ -139,7 +145,7 @@ export const useAuthStore = defineStore('auth', {
             }
 
             if (this.token) {
-                headers['Authorization'] = `Bearer ${this.token}`
+                headers['Authorization'] = `Token ${this.token}`
             }
 
             return await $fetch<UserProfile>(`/api/v1/users/${username}`, {
@@ -159,7 +165,7 @@ export const useAuthStore = defineStore('auth', {
                 method: 'POST',
                 baseURL: config.public.apiBase,
                 headers: {
-                    'Authorization': `Bearer ${this.token}`,
+                    'Authorization': `Token ${this.token}`,
                     'Content-Type': 'application/json'
                 }
             })
@@ -176,7 +182,7 @@ export const useAuthStore = defineStore('auth', {
                 method: 'DELETE',
                 baseURL: config.public.apiBase,
                 headers: {
-                    'Authorization': `Bearer ${this.token}`,
+                    'Authorization': `Token ${this.token}`,
                     'Content-Type': 'application/json'
                 }
             })
@@ -269,7 +275,7 @@ export const useAuthStore = defineStore('auth', {
             if (!this.token) throw new Error('Brak tokena JWT')
             return await $fetch<User>('/api/v1/auth/user/', {
                 baseURL: config.public.apiBase,
-                headers: { 'Authorization': `Bearer ${this.token}` }
+                headers: { 'Authorization': `Token ${this.token}` }
             })
         },
         logout() {

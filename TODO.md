@@ -15,7 +15,7 @@
 4. 🔄 games page
 5. 🔄 users page
 6. ✅ footer and header (navbar)
-7. ❌ PILNE - dodaj sprawdzanie statusu backendu (stoi na render) i pokazuj na froncie zawsze w headerze (zielona kropka / czerwona kropka) komunikat czy backend jest live czy nie
+7. ✅ PILNE - dodaj sprawdzanie statusu backendu (stoi na render) i pokazuj na froncie zawsze w headerze (zielona kropka / czerwona kropka) komunikat czy backend jest live czy nie
 
 # admin page
 1. 🔄 view all users
@@ -26,13 +26,13 @@
 
 # games page
 1. 🔄 view all games
-2. ❌ search games
-3. ❌ filter games
-4. ❌ sort games
-5. ❌ view game details
-6. 🔄 play game
+2. ✅ search games
+3. ✅ filter games
+4. ✅ sort games
+5. ✅ view game details
+6. ✅ play game
     - ✅ load webgl game
-    - ❌ load different type of game?
+    - ✅ load different type of game?
 
 # users page
 1. 🔄 view user profile
@@ -50,7 +50,7 @@
 2. ❌ leaderboards
 3. 🔄 dark mode
     - ❌ księżyc nakłada się
-4. ❌ game reviews and ratings
+4. ✅ game reviews and ratings
 5. ❌ analytics dashboard for admins
 
 # luźne notatki

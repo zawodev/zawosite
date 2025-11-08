@@ -95,7 +95,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+                    ...(authToken && { 'Authorization': `Token ${authToken}` }),
                 },
                 body: JSON.stringify({
                     guest_username: authToken ? undefined : username,
