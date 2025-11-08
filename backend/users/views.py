@@ -35,12 +35,22 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 @extend_schema(responses=UserSerializer)
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 @extend_schema(responses=UserSerializer)
 class UserDetailView(generics.RetrieveAPIView):
@@ -48,6 +58,11 @@ class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'username'
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 @extend_schema(responses=FriendSerializer)
 class FriendsListView(generics.ListAPIView):
@@ -91,6 +106,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def get_login_redirect_url(self, request):

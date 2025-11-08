@@ -32,7 +32,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!replace_me!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 

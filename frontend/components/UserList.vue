@@ -1,11 +1,11 @@
 <template>
-  <div class="card p-6">
+  <div class="card p-6 bg-white dark:bg-gray-800">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Lista użytkowników</h2>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Lista użytkowników</h2>
       <button
           @click="refreshUsers"
           :disabled="loading"
-          class="btn-primary text-sm"
+          class="btn-primary text-sm flex items-center"
       >
         <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -28,8 +28,8 @@
       <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.098 16.5c-.77.833.192 2.5 1.732 2.5z"/>
       </svg>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Błąd ładowania</h3>
-      <p class="text-gray-600 mb-4">{{ error }}</p>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Błąd ładowania</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">{{ error }}</p>
       <button @click="refreshUsers" class="btn-primary">
         Spróbuj ponownie
       </button>
@@ -41,7 +41,7 @@
           v-for="user in filteredUsers"
           :key="user.id"
           :to="`/profile/${user.username}`"
-          class="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 transform hover:-translate-y-2 group"
+          class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-600 hover:border-blue-200 dark:hover:border-blue-500 transform hover:-translate-y-2 group"
       >
         <div class="flex flex-col items-center text-center">
           <!-- Avatar -->
@@ -62,10 +62,10 @@
 
           <!-- User Info -->
           <div class="flex-1">
-            <h3 class="text-xl font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {{ user.full_name }}
             </h3>
-            <p class="text-gray-600 mb-3">
+            <p class="text-gray-600 dark:text-gray-300 mb-3">
               @{{ user.username }}
             </p>
 
@@ -96,7 +96,7 @@
             </div>
 
             <!-- Friends Count -->
-            <div class="flex items-center justify-center text-gray-500 text-sm">
+            <div class="flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
               </svg>
@@ -106,7 +106,7 @@
 
           <!-- View Profile Arrow -->
           <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
           </div>
@@ -116,11 +116,11 @@
 
     <!-- No Users Found -->
     <div v-else class="text-center py-12">
-      <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
       </svg>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Nie znaleziono użytkowników</h3>
-      <p class="text-gray-600">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nie znaleziono użytkowników</h3>
+      <p class="text-gray-600 dark:text-gray-400">
         {{ searchQuery ? `Brak wyników dla "${searchQuery}"` : 'Brak użytkowników w systemie' }}
       </p>
     </div>
@@ -160,7 +160,8 @@ const refreshUsers = async () => {
     error.value = ''
     users.value = await authStore.fetchUsers()
   } catch (err: any) {
-    error.value = err.data?.detail || 'Nie udało się pobrać listy użytkowników'
+    console.error('Error fetching users:', err)
+    error.value = err.data?.detail || err.message || 'Nie udało się pobrać listy użytkowników'
   } finally {
     loading.value = false
   }

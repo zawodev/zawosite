@@ -12,10 +12,41 @@ class FriendSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     friends = FriendSerializer(many=True, read_only=True)
+    full_name = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
+    provider = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar', 'description', 'friends', 'role'] 
+        fields = ['id', 'username', 'email', 'full_name', 'avatar_url', 'provider', 'avatar', 'description', 'friends', 'role']
+    
+    def get_full_name(self, obj):
+        """Return full name or username if not set"""
+        if obj.first_name and obj.last_name:
+            return f"{obj.first_name} {obj.last_name}"
+        elif obj.first_name:
+            return obj.first_name
+        return obj.username
+    
+    def get_avatar_url(self, obj):
+        """Return avatar URL"""
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return obj.avatar.url
+        return None
+    
+    def get_provider(self, obj):
+        """Get OAuth provider if any"""
+        try:
+            from allauth.socialaccount.models import SocialAccount
+            social_account = SocialAccount.objects.filter(user=obj).first()
+            if social_account:
+                return social_account.provider
+        except:
+            pass
+        return 'local' 
 
 class CustomRegisterSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)

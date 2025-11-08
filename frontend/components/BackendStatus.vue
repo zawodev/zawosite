@@ -61,9 +61,9 @@ const checkBackendStatus = async () => {
 onMounted(() => {
   // Check immediately
   checkBackendStatus()
-  
-  // Check every 20 seconds
-  checkInterval = setInterval(checkBackendStatus, 20000)
+
+  // Check every 60 seconds
+  checkInterval = setInterval(checkBackendStatus, 60000)
 })
 
 onUnmounted(() => {
