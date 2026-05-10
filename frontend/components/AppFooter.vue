@@ -58,7 +58,7 @@
     <div class="footer-bottom">
       <div class="footer-bottom-content">
         <p class="copyright">
-          © {{ currentYear }} zawosite - wszelkie prawa zastrzeżone
+          © {{ currentYear }} zawosite - żadne prawa nie są zastrzeżone (v1.0.6)
         </p>
       </div>
     </div>

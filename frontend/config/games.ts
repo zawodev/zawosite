@@ -13,10 +13,23 @@ export interface Game {
   image: string
   tags: GameTag[]
   addedDate: string
+  isPublic: boolean
   category?: string
 }
 
 export const GAMES: Game[] = [
+  {
+    id: 6,
+    slug: 'full-life',
+    title: 'Full Life: Steal Piwo',
+    description: 'Zły czarnoksiężnik RaV ukradł całe twoje zapasy piwa na majówkę! Wyrusz w pełną przygód podróż, aby odzyskać co twoje i uratować majuwe!',
+    image: '/games/full-life/thumbnail.jpg',
+    tags: [
+      { icon: UserIcon, text: 'Singleplayer' }
+    ],
+    addedDate: '2026-05-10',
+    isPublic: true
+  },
   {
     id: 5,
     slug: 'zawomons-gt',
@@ -27,6 +40,7 @@ export const GAMES: Game[] = [
       { icon: UserGroupIcon, text: 'Multiplayer' }
     ],
     addedDate: '2025-11-04',
+    isPublic: false,
     category: 'Karcianka'
   },
   {
@@ -40,6 +54,7 @@ export const GAMES: Game[] = [
       { icon: UserIcon, text: 'Singleplayer' }
     ],
     addedDate: '2025-10-01',
+    isPublic: false,
     category: 'MMORPG'
   },
   {
@@ -52,6 +67,7 @@ export const GAMES: Game[] = [
       { icon: UserGroupIcon, text: 'Multiplayer' }
     ],
     addedDate: '2025-09-23',
+    isPublic: true,
     category: 'Arcade'
   },
   {
@@ -64,6 +80,7 @@ export const GAMES: Game[] = [
       { icon: UserIcon, text: 'Singleplayer' }
     ],
     addedDate: '2025-09-06',
+    isPublic: true,
     category: 'Tower Defense'
   },
   {
@@ -76,6 +93,7 @@ export const GAMES: Game[] = [
       { icon: UserIcon, text: 'Singleplayer' }
     ],
     addedDate: '2025-09-03',
+    isPublic: true,
     category: 'Zręcznościowa'
   }
 ]
@@ -91,4 +109,15 @@ export function getGameSlugs(): string[] {
 
 export function gameExists(slug: string): boolean {
   return GAMES.some(game => game.slug === slug)
+}
+
+export function getVisibleGame(slug: string, isAdmin: boolean): Game | undefined {
+  const game = getGameBySlug(slug)
+  if (!game) return undefined
+  if (game.isPublic || isAdmin) return game
+  return undefined
+}
+
+export function getVisibleGames(isAdmin: boolean): Game[] {
+  return isAdmin ? GAMES : GAMES.filter(game => game.isPublic)
 }
