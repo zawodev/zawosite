@@ -451,7 +451,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useAuthStore } from '~/stores/auth'
-import { getGameBySlug, gameExists as isGameExists } from '~/config/games'
+import { getVisibleGame } from '~/config/games'
 
 console.log('Play page loading...')
 
@@ -462,6 +462,7 @@ definePageMeta({
 const route = useRoute()
 const config = useRuntimeConfig()
 const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.user?.role === 'admin')
 const slug = computed(() => route.params.slug as string)
 const loading = ref(true)
 const error = ref(false)
@@ -486,8 +487,8 @@ const repliesCache = ref<Map<number, any[]>>(new Map())
 console.log('Current slug:', slug.value)
 
 // Sprawdzenie czy gra istnieje
-const gameExists = computed(() => isGameExists(slug.value))
-const currentGame = computed(() => getGameBySlug(slug.value))
+const currentGame = computed(() => getVisibleGame(slug.value, isAdmin.value))
+const gameExists = computed(() => !!currentGame.value)
 
 // Ścieżka do gry
 const iframeSrc = computed(() => `/games/${slug.value}/index.html`)
@@ -515,13 +516,13 @@ onMounted(() => {
   error.value = false
   
   // Load auth from storage first
-  if (process.client) {
+  if (import.meta.client) {
     authStore.loadFromStorage()
     console.log('Auth loaded, token present:', !!authStore.token, 'user:', authStore.user?.username)
   }
   
   // Słuchaj czy Unity się załadowało i wyślij token
-  if (process.client) {
+  if (import.meta.client) {
     setupUnityTokenSender()
   }
   

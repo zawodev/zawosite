@@ -115,11 +115,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { GAMES } from '~/config/games'
+import { useAuthStore } from '~/stores/auth'
+import { getVisibleGames } from '~/config/games'
 import { MagnifyingGlassIcon, XMarkIcon, ArrowsUpDownIcon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.user?.role === 'admin')
 
 // State
 const searchQuery = ref('')
@@ -128,6 +131,7 @@ const sortOrder = ref<'asc' | 'desc'>('desc') // desc = newest first
 
 // Initialize from URL query params
 onMounted(() => {
+  authStore.loadFromStorage()
   const tagParam = route.query.tag
   if (tagParam) {
     const tag = Array.isArray(tagParam) ? tagParam[0] : tagParam
@@ -150,7 +154,7 @@ watch(() => route.query.tag, (newTag) => {
 // Available tags (extract from all games)
 const availableTags = computed(() => {
   const tags = new Set<string>()
-  GAMES.forEach(game => {
+  getVisibleGames(isAdmin.value).forEach(game => {
     game.tags.forEach(tag => tags.add(tag.text))
   })
   return Array.from(tags).sort()
@@ -158,7 +162,7 @@ const availableTags = computed(() => {
 
 // Filtered and sorted games
 const filteredGames = computed(() => {
-  let games = GAMES.map(game => ({
+  let games = getVisibleGames(isAdmin.value).map(game => ({
     ...game,
     url: `/play/${game.slug}`
   }))
