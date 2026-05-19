@@ -1,3 +1,9 @@
+import { readFileSync } from 'node:fs'
+
+const pkg = JSON.parse(
+    readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
+) as { version?: string }
+
 export default defineNuxtConfig({
     compatibilityDate: '2025-07-01',
     devtools: { enabled: true },
@@ -26,7 +32,8 @@ export default defineNuxtConfig({
         public: {
             apiBase: process.env.API_BASE_URL || 'http://localhost:8000',
             googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-            facebookAppId: process.env.FACEBOOK_APP_ID || ''
+            facebookAppId: process.env.FACEBOOK_APP_ID || '',
+            appVersion: process.env.APP_VERSION || pkg.version || '0.0.0'
         }
     },
     app: {
