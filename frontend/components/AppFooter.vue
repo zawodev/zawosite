@@ -58,7 +58,7 @@
     <div class="footer-bottom">
       <div class="footer-bottom-content">
         <p class="copyright">
-          © {{ currentYear }} zawosite - żadne prawa nie są zastrzeżone (v1.0.6)
+          © {{ currentYear }} zawosite - żadne prawa nie są zastrzeżone (v{{ appVersion }})
         </p>
       </div>
     </div>
@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 const currentYear = computed(() => new Date().getFullYear())
+const appVersion = useRuntimeConfig().public.appVersion
 </script>
 
 <style scoped>
